@@ -1,0 +1,25 @@
+name: Source Code Security Scan
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sast-scan:
+    name: OpenGrep Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run OpenGrep
+        uses: platform-sec/opengrep-action@v1
+        with:
+          config: "auto"
+          fail-on-findings: true

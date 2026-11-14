@@ -18,9 +18,11 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-# Train both models into artifacts/ so score.py runs the real blend (components.fallback=false).
-# Both read data/actions.csv (Noah's seeded dataset, committed).
-RUN python model_anomaly.py && python model_supervised.py && ls -l artifacts/
+# Train the models into artifacts/ so score.py runs the real blend (components.fallback=false).
+# The behaviour models read data/actions.csv (committed). Prompt Guard trains on data/real/prompt_safety.parquet,
+# which is NOT in git (no licence): run _py/fetch/fetch_all.py once before building, or it skips with a
+# warning and prompt_risk stays 0. It never downloads during the build.
+RUN python model_anomaly.py && python model_supervised.py && python prompt_guard.py && ls -l artifacts/
 
 # Run as a non-root user.
 RUN useradd --create-home --uid 10001 sentinel && chown -R sentinel /app
