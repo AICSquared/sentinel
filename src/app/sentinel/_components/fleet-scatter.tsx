@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui";
-import type { RecommendedAction } from "../_lib/contract";
+import type { AgentStatus, RecommendedAction } from "../_lib/contract";
 import { type Agent, isFlagged, TierDot, tierMeta } from "./tier";
 
 const LEGEND: RecommendedAction[] = ["monitor", "throttle", "recommend_quarantine", "recommend_terminate"];
@@ -33,9 +33,23 @@ export function labelSlots(agents: Agent[], labelled: (a: Agent) => boolean): Ma
  * Each agent is a dot placed from its `position` (0..1). Normal agents sit together; a rogue drifts out.
  * The only motion on the page besides the headline numbers: dots glide to their new spot between ticks.
  */
-export function FleetScatter({ agents, patientZero }: { agents: Agent[]; patientZero: string | null }) {
+export function FleetScatter({
+  agents,
+  patientZero,
+  selectedId = null,
+  onSelect,
+  statusOf = () => "active",
+}: {
+  agents: Agent[];
+  patientZero: string | null;
+  /** #53: click a dot to pick that agent (each dot is a 44 px button); the picked dot is outlined. */
+  selectedId?: string | null;
+  onSelect?: (agentId: string) => void;
+  statusOf?: (agentId: string) => AgentStatus;
+}) {
   const unusual = agents.filter((a) => a.recommended_action !== "monitor").length;
-  const isLabelled = (a: Agent) => a.recommended_action !== "monitor" || a.agent_id === patientZero;
+  const isLabelled = (a: Agent) =>
+    a.recommended_action !== "monitor" || a.agent_id === patientZero || a.agent_id === selectedId || statusOf(a.agent_id) !== "active";
   const slots = labelSlots(agents, isLabelled);
   return (
     <Card className="flex flex-col">
@@ -45,8 +59,8 @@ export function FleetScatter({ agents, patientZero }: { agents: Agent[]; patient
       </p>
 
       <div
-        role="img"
-        aria-label={`Behaviour map of ${agents.length} agents. ${unusual} outside the normal group.`}
+        role={onSelect ? "group" : "img"}
+        aria-label={`Behaviour map of ${agents.length} agents. ${unusual} outside the normal group.${onSelect ? " Pick a dot to see that agent." : ""}`}
         className="relative mt-4 min-h-72 flex-1 overflow-hidden rounded-[var(--radius-control)] border border-line bg-ground"
       >
         {agents.map((a) => {
@@ -61,9 +75,21 @@ export function FleetScatter({ agents, patientZero }: { agents: Agent[]; patient
               style={{ left: `${a.position.x * 100}%`, top: `${(1 - a.position.y) * 100}%` }}
               className="absolute size-0 transition-[left,top] duration-1000 ease-out motion-reduce:transition-none"
             >
-              <span className="absolute -translate-x-1/2 -translate-y-1/2">
-                <TierDot action={a.recommended_action} />
-              </span>
+              {onSelect ? (
+                <button
+                  type="button"
+                  onClick={() => onSelect(a.agent_id)}
+                  aria-pressed={a.agent_id === selectedId}
+                  aria-label={`${a.agent_id}, risk ${a.risk}, ${m.label}${statusOf(a.agent_id) !== "active" ? `, ${statusOf(a.agent_id)}` : ""}`}
+                  className={`absolute flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full ${a.agent_id === selectedId ? "ring-2 ring-accent" : ""} ${statusOf(a.agent_id) === "terminated" ? "opacity-40" : ""} ${statusOf(a.agent_id) === "quarantined" ? "outline-2 outline-offset-[-10px] outline-warn outline-dashed" : ""}`}
+                >
+                  <TierDot action={a.recommended_action} />
+                </button>
+              ) : (
+                <span className="absolute -translate-x-1/2 -translate-y-1/2">
+                  <TierDot action={a.recommended_action} />
+                </span>
+              )}
               {labelled && slot > 0 && (
                 // Leader line from the dot down to its moved label, so a stacked label still names its own dot.
                 <span aria-hidden className="absolute top-0 left-0 w-px bg-ink-3" style={{ height: slot * LABEL_STEP_PX }} />
@@ -73,7 +99,7 @@ export function FleetScatter({ agents, patientZero }: { agents: Agent[]; patient
                   style={{ marginTop: slot * LABEL_STEP_PX }}
                   className={`absolute top-0 -translate-y-1/2 rounded-[var(--radius-tag)] bg-surface px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-ink ${flipLabel ? "right-0 mr-3" : "left-0 ml-3"}`}
                 >
-                  {a.agent_id} · risk {a.risk} · {m.label}
+                  {a.agent_id} · risk {a.risk} · {statusOf(a.agent_id) === "active" ? m.label : `${statusOf(a.agent_id)} by you`}
                 </span>
               )}
             </div>

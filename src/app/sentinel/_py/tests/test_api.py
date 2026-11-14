@@ -31,7 +31,8 @@ def assert_b2(body: dict) -> None:
     assert body["sentinel"]["containment"] in {"none", "recommended", "approved", "dismissed"}
     assert len(body["sentinel"]["fleet_risk_history"]) <= 12
     for a in body["agents"]:
-        assert set(a) - {"components", "top_features"} == B2_AGENT  # both optional (T7, #39)
+        # all optional: components (T7), top_features (#39), task / status / evidence (#53)
+        assert set(a) - {"components", "top_features", "task", "status", "evidence"} == B2_AGENT
         if "top_features" in a:
             assert 1 <= len(a["top_features"]) <= 5
             assert all(set(f) == {"feature", "contribution"} for f in a["top_features"])

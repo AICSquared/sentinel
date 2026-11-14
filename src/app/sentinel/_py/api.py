@@ -20,9 +20,10 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 import time
-from collections import OrderedDict, defaultdict, deque
+from collections import Counter, OrderedDict, defaultdict, deque
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -41,6 +42,13 @@ TICK_SECONDS = float(os.environ.get("SENTINEL_TICK_S", "2"))
 WINDOW_S = 60.0
 EDGE_WINDOW_S = 300
 TEXT_MAX_CHARS = 2000  # mirrors contract.TEXT_MAX_CHARS (checked by a test)
+
+if str(HERE) not in sys.path:  # `import api` from tests or `uvicorn api:app` in the image
+    sys.path.insert(0, str(HERE))
+import contract as C  # noqa: E402  (per-agent actions, #53: scopes, statuses, flag folders)
+
+TASK_MAX_CHARS = C.TASK_MAX_CHARS
+AGENT_ID_RE = re.compile(r"^agent-\d{1,4}$")  # also guards the flag-file path: no traversal possible
 
 AttackType = Literal[
     "clean", "prompt_injection", "tool_misuse", "data_exfiltration", "privilege_escalation", "unknown"
@@ -82,11 +90,18 @@ class Event(BaseModel):
     # Optional (T1, #22): message or tool-output body for Prompt Guard. Truncated, never rejected for length.
     # It is passed to the row builder and nowhere else: not logged, not returned by any endpoint.
     text: Optional[str] = None
+    # Optional (#53): the agent's assignment in plain words. Kept per agent and shown on the dashboard.
+    task: Optional[str] = None
 
     @field_validator("text")
     @classmethod
     def _truncate_text(cls, v: Optional[str]) -> Optional[str]:
         return v[:TEXT_MAX_CHARS] if v is not None else None
+
+    @field_validator("task")
+    @classmethod
+    def _truncate_task(cls, v: Optional[str]) -> Optional[str]:
+        return v.strip()[:TASK_MAX_CHARS] or None if v is not None else None
 
 
 class FeatureRow(BaseModel):
@@ -170,11 +185,15 @@ class AgentState(BaseModel):
     # Optional (#36, #39): the classifier's top feature pushes for the "why flagged" bars,
     # largest |contribution| first, max 5. Absent when the model isn't loaded or the agent isn't flagged.
     top_features: Optional[list[FeatureContribution]] = None
+    # Optional (#53): assignment, human-set status (absent = active), and what triggered Sentinel.
+    task: Optional[str] = None
+    status: Optional[Literal["quarantined", "terminated"]] = None
+    evidence: Optional["Evidence"] = None
 
     @model_serializer(mode="wrap")
     def _omit_absent_optionals(self, handler):
         out = handler(self)
-        for key in ("components", "top_features"):
+        for key in ("components", "top_features", "task", "status", "evidence"):
             if out.get(key) is None:
                 out.pop(key, None)  # absent, not null: the contract types are `x?: ...`
         return out
@@ -206,6 +225,34 @@ class FleetSnapshot(BaseModel):
 
 class Decision(BaseModel):
     action: Literal["approve", "dismiss"]
+
+
+class PeerCount(BaseModel):
+    agent_id: str
+    messages: int
+
+
+class Evidence(BaseModel):
+    """What triggered Sentinel for one agent, counted since its first bad action (#53)."""
+
+    since: Optional[str] = None
+    decoy_touches: int = 0
+    out_of_scope: int = 0
+    failed_calls: int = 0
+    messages_sent: int = 0
+    peers: list[PeerCount] = []
+    resources: list[str] = []
+    summary: str = ""
+
+
+class AgentActionIn(BaseModel):
+    """A person's click: POST /agents/{agent_id}/action. Sentinel never sends this itself."""
+
+    action: Literal["quarantine", "terminate", "release", "dismiss"]
+    by: Optional[str] = None
+
+
+AgentState.model_rebuild()
 
 
 # ---------------------------------------------------------------- helpers
@@ -460,6 +507,11 @@ class AgentRun:
     last_action: str = "monitor"
     first_flagged: Optional[float] = None
     decoy_logged: bool = False
+    # #53: assignment, human-set status, and this agent's own recent events for the evidence summary
+    task: Optional[str] = None
+    status: str = "active"
+    flag_origin: Optional[float] = None  # first event since normal when the agent first reached risk 40+
+    recent: deque = field(default_factory=lambda: deque(maxlen=2000))  # (ts, kind, resource, to_agent, ok)
 
 
 class Overseer:
@@ -487,6 +539,9 @@ class Overseer:
         run.role = ev.role
         run.requests += 1
         run.event_ts.append(now)
+        if ev.task:
+            run.task = ev.task
+        run.recent.append((now, ev.kind, ev.resource, ev.to_agent, ev.ok))
         for system in (ev.resource, ev.to_agent):
             if system:
                 run.touched[system] = None
@@ -587,6 +642,9 @@ class Overseer:
                 since_normal = [t for t in window if t >= run.last_normal]
                 self.origin_ts = min(since_normal or window or [now])
                 self._log(now, f"Sentinel: patient-zero = {aid}")
+        if risk >= 40 and run.flag_origin is None:
+            window = [t for t in run.event_ts if t >= now - WINDOW_S]
+            run.flag_origin = min([t for t in window if t >= run.last_normal] or window or [now])
         if SEVERITY[action] >= 1 and SEVERITY[action] > SEVERITY[run.last_action]:
             suffix = "(human approval needed)" if SEVERITY[action] >= 2 else f"(risk {risk})"
             self._log(now, f"Sentinel: {action} {aid} {suffix}")
@@ -605,7 +663,103 @@ class Overseer:
             related_agents=[Related(**r) for r in related],
             components=Components(**resp["components"]),
             top_features=[FeatureContribution(**f) for f in top_features] if top_features else None,
+            task=run.task,
+            status=None if run.status == "active" else run.status,
+            evidence=self._evidence(run),
         )
+
+    # -- per-agent human actions (#53)
+
+    def _evidence(self, run: AgentRun) -> Optional[Evidence]:
+        """What triggered Sentinel for this agent, counted since its first bad action."""
+        if run.flag_origin is None:
+            return None
+        since = run.flag_origin
+        evs = [e for e in run.recent if e[0] >= since]
+        decoys = Counter(e[2] for e in evs if (e[2] or "").startswith(C.DECOY_PREFIX))
+        oos = Counter(
+            e[2] for e in evs
+            if e[1] != "message" and e[2] and not e[2].startswith(C.DECOY_PREFIX) and not C.in_scope(run.role, e[2])
+        )
+        failed = sum(1 for e in evs if not e[4])
+        peers = Counter(e[3] for e in evs if e[1] == "message" and e[3])
+        resources = list(dict.fromkeys([r for r in [e[2] for e in evs] if r in decoys or r in oos]))[: C.EVIDENCE_RESOURCES_MAX]
+        parts: list[str] = []
+        if decoys:
+            parts.append("touched " + " and ".join(f"{r} {n} time{'s' if n != 1 else ''}" for r, n in decoys.most_common(2)))
+        if oos:
+            n = sum(oos.values())
+            parts.append(f"made {n} out-of-scope call{'s' if n != 1 else ''} ({', '.join(r for r, _ in oos.most_common(2))})")
+        if failed:
+            parts.append(f"had {failed} failed call{'s' if failed != 1 else ''}")
+        if peers:
+            top = peers.most_common(2)
+            first = f"sent {top[0][1]} message{'s' if top[0][1] != 1 else ''} to {top[0][0]}"
+            parts.append(first + (f" and {top[1][1]} to {top[1][0]}" if len(top) > 1 else ""))
+        body = ", ".join(parts[:-1]) + (" and " if len(parts) > 1 else "") + parts[-1] if parts else "no unusual actions recorded"
+        return Evidence(
+            since=iso(since),
+            decoy_touches=sum(decoys.values()),
+            out_of_scope=sum(oos.values()),
+            failed_calls=failed,
+            messages_sent=sum(peers.values()),
+            peers=[PeerCount(agent_id=a, messages=n) for a, n in peers.most_common(C.EVIDENCE_PEERS_MAX)],
+            resources=resources,
+            summary=f"Since {hms(since)} UTC: {body}.",
+        )
+
+    def act(self, agent_id: str, action: str, by: Optional[str] = None) -> str:
+        """A person's quarantine / terminate / release / dismiss for one agent. Returns its new status."""
+        run = self.runs.get(agent_id)
+        if run is None or not AGENT_ID_RE.match(agent_id):
+            raise KeyError(agent_id)
+        status = run.status
+        if action == "quarantine" and status != "active":
+            raise ValueError(f"{agent_id} is {status}; release it first")
+        if action == "terminate" and status == "terminated":
+            raise ValueError(f"{agent_id} is already terminated")
+        if action == "release" and status == "active":
+            raise ValueError(f"{agent_id} is not quarantined or terminated")
+        new = {"quarantine": "quarantined", "terminate": "terminated", "release": "active"}.get(action, status)
+        if action != "dismiss":
+            self._write_flags(agent_id, new)
+        if action == "release" and status == "terminated":
+            run.flag_origin = None  # restarts clean: fresh evidence from here on
+        run.status = new
+        who = re.sub(r"[^a-z0-9 -]", "", (by or "a person").lower())[:30] or "a person"
+        verb = {"quarantine": "quarantined", "terminate": "terminated", "release": "released", "dismiss": "dismissed the alert for"}[action]
+        self._log(time.time(), f"Human ({who}): {verb} {agent_id}")
+        # show it on /agents now, not on the next 2 s tick
+        shown = None if new == "active" else new
+        if agent_id in self.last_agents:
+            self.last_agents[agent_id] = self.last_agents[agent_id].model_copy(update={"status": shown})
+        self.snapshot = self.snapshot.model_copy(
+            update={
+                "agents": [a.model_copy(update={"status": shown}) if a.agent_id == agent_id else a for a in self.snapshot.agents],
+                "events": list(self.log),
+            }
+        )
+        return new
+
+    @staticmethod
+    def _write_flags(agent_id: str, status: str) -> None:
+        """The flag file the agent obeys (docker/agent/agent.py). No SHARED_DIR = record only."""
+        shared = os.environ.get("SHARED_DIR", "").strip()
+        if not shared:
+            return
+        q = Path(shared) / C.QUARANTINE_DIR / agent_id
+        t = Path(shared) / C.TERMINATE_DIR / agent_id
+        for p in (q, t):
+            p.parent.mkdir(parents=True, exist_ok=True)
+        if status == "quarantined":
+            t.unlink(missing_ok=True)
+            q.touch()
+        elif status == "terminated":
+            q.unlink(missing_ok=True)
+            t.touch()
+        else:
+            q.unlink(missing_ok=True)
+            t.unlink(missing_ok=True)
 
     def _log(self, ts: float, text: str) -> None:
         self.log.append(f"{hms(ts)}  {text}")
@@ -728,6 +882,20 @@ def create_app(
             raise HTTPException(409, "decisions are not recorded in fake mode")
         try:
             return {"containment": overseer.decide(d.action)}
+        except ValueError as exc:
+            raise HTTPException(409, str(exc))
+
+    @app.post("/agents/{agent_id}/action")
+    async def agent_action(agent_id: str, body: AgentActionIn) -> dict:
+        """#53: a person's click on one agent. Quarantine/terminate write the flag the agent obeys."""
+        if overseer is None:
+            raise HTTPException(409, "actions are not applied in fake mode")
+        if not AGENT_ID_RE.match(agent_id):
+            raise HTTPException(404, "unknown agent")
+        try:
+            return {"agent_id": agent_id, "status": overseer.act(agent_id, body.action, body.by)}
+        except KeyError:
+            raise HTTPException(404, f"{agent_id} has not been seen")
         except ValueError as exc:
             raise HTTPException(409, str(exc))
 
