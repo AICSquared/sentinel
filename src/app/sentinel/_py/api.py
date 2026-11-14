@@ -673,7 +673,9 @@ def create_app(
     app = FastAPI(title="Sentinel overseer", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+        # Any localhost port: if :3000 is busy on the demo laptop, `next` moves to another port and the
+        # live view must not silently fall back to the recording. Local machine only, never a remote origin.
+        allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_methods=["*"],
         allow_headers=["*"],
     )

@@ -266,6 +266,14 @@ def test_cors_and_health(live):
     assert client.get("/health").json()["ok"] is True
 
 
+def test_cors_allows_any_localhost_port_and_nothing_else(live):
+    client, _ = live
+    for ok in ("http://localhost:3001", "http://127.0.0.1:4010", "http://localhost"):
+        assert client.get("/agents", headers={"Origin": ok}).headers.get("access-control-allow-origin") == ok
+    for bad in ("http://evil.example", "http://localhost.evil.example:3000", "https://localhost:3000"):
+        assert "access-control-allow-origin" not in client.get("/agents", headers={"Origin": bad}).headers
+
+
 # ---------------------------------------------------------------- T7: text, prompt_risk, components.prompt
 
 
