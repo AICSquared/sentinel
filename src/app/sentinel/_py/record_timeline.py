@@ -42,7 +42,9 @@ import contract as C  # noqa: E402
 
 REPO_ROOT = HERE.parents[3]  # _py -> sentinel -> app -> src -> repo
 DEFAULT_OUT = HERE.parent / "_data" / "demo_timeline.json"
-DEFAULT_TRIGGER = "docker/trigger.sh agent-47"
+# Through `bash` on purpose: the command runs via the platform shell, and on Windows cmd.exe would read
+# `docker/trigger.sh` as `docker /trigger.sh`. `bash docker/trigger.sh` works on Windows (Git Bash), Mac and Linux.
+DEFAULT_TRIGGER = "bash docker/trigger.sh agent-47"
 ROGUE_LINE = re.compile(r"(agent-\d+) turned rogue")
 
 
