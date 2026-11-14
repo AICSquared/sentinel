@@ -1,0 +1,21 @@
+# Sentinel local stack. Docker (OrbStack on Mac, Docker Desktop on Windows) or Podman:
+#   docker compose -f docker/compose.yml up --build -d     # or: podman compose -f docker/compose.yml up --build -d
+#   curl localhost:8000/health && curl localhost:8000/agents
+# Then `pnpm demo` and open http://localhost:3000/sentinel (it polls the overseer every second).
+#
+# Now: the overseer. Next (#5, C8): 8 scripted agent containers that POST events to it,
+# trigger.sh to turn one rogue, quarantine.sh for the human to act on an approved recommendation.
+name: sentinel
+
+services:
+  overseer:
+    build:
+      context: ../src/app/sentinel/_py
+      dockerfile: ../../../../docker/overseer/Dockerfile
+    image: sentinel-overseer:dev
+    ports:
+      - "127.0.0.1:8000:8000"   # localhost only; the dashboard and agents are on this machine
+    environment:
+      SENTINEL_TICK_S: "2"
+      # SENTINEL_FAKE: "1"      # uncomment to serve the canned demo timeline instead of live scoring
+    restart: unless-stopped
