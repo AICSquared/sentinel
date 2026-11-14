@@ -58,7 +58,12 @@ export type RawEvent = {
   to_agent: string | null;
   ok: boolean;
   bytes_out: number;
+  /** Optional (T1, #22): message or tool-output body for Prompt Guard, at most TEXT_MAX_CHARS. */
+  text?: string | null;
 };
+
+/** Max length of RawEvent.text; senders and the overseer truncate to this. Mirrors contract.py. */
+export const TEXT_MAX_CHARS = 2000;
 
 // --- A. Feature row (columns 1-13; `label` is training only) ---------------
 
@@ -76,6 +81,8 @@ export type FeatureRow = {
   distinct_peers: number;
   bytes_out_per_min: number;
   sec_since_normal: number;
+  /** Optional (T1, #22): 0-1, max Prompt Guard probability over the window's messages. Not a model input. */
+  prompt_risk?: number;
 };
 
 // --- B. POST /score --------------------------------------------------------
@@ -96,7 +103,9 @@ export type ScoreResponse = {
   reason: string;
   related_agents: RelatedAgent[];
   recommended_action: RecommendedAction;
-  components: { supervised: number; anomaly: number; fallback: boolean };
+  // `prompt` (0-100, T1 #22) is present only when the row had prompt_risk. No new attack types:
+  // when Prompt Guard drives the risk, attack_type is "prompt_injection".
+  components: { supervised: number; anomaly: number; fallback: boolean; prompt?: number };
 };
 
 // --- B2. GET /agents (fleet snapshot) --------------------------------------
