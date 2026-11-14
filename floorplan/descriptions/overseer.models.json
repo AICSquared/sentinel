@@ -1,0 +1,16 @@
+{
+  "files": {
+    "src/app/sentinel/_py/model_anomaly.py": {
+      "name": "Unusual-behaviour detector",
+      "description": "Cleans the training data, learns what normal agents look like, scores how unusual an agent is and places its dot on the map."
+    },
+    "src/app/sentinel/_py/model_supervised.py": {
+      "name": "Known-attack detector",
+      "description": "Learns the four known attack types from labelled examples and names which one an agent looks like, with the reasons."
+    },
+    "src/app/sentinel/_py/prompt_guard.py": {
+      "name": "Prompt Guard",
+      "description": "Reads message text and scores how likely it hides an instruction for another agent; trained on public data and tested on a different set."
+    }
+  }
+}

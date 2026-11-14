@@ -1,0 +1,12 @@
+# Committed: architecture.json, descriptions/, sentinel-map.html (the shareable map), README.md.
+# Everything below is generated, machine-specific, or per-session; the floorplan skill rebuilds it.
+.cache/
+index.html
+graph.json
+serve.mjs
+query.mjs
+page-safety.mjs
+recent-work.json
+custom-flows.json
+*-map.html
+!sentinel-map.html

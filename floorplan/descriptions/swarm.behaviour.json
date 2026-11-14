@@ -1,0 +1,8 @@
+{
+  "files": {
+    "docker/agent/swarm.py": {
+      "name": "Agent behaviour script",
+      "description": "What a normal agent does and what a hijacked one does; seeded so every run repeats exactly."
+    }
+  }
+}

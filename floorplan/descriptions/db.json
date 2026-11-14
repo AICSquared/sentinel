@@ -1,0 +1,12 @@
+{
+  "files": {
+    "supabase/migrations/20261113000000_init_schema.sql": {
+      "name": "Set up example jobs list",
+      "description": "Creates the template's example jobs list, where each person can see and change only their own jobs."
+    },
+    "supabase/migrations/20261114000000_audit_log.sql": {
+      "name": "Set up the audit log",
+      "description": "Creates the audit log: anyone with access can add rows and read them, but nobody can edit or delete them."
+    }
+  }
+}

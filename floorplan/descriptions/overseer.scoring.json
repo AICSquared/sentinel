@@ -1,0 +1,12 @@
+{
+  "files": {
+    "src/app/sentinel/_py/contract.py": {
+      "name": "Shared data shapes (server)",
+      "description": "The agreed names, risk levels and limits the whole scoring server uses, kept in step with the website's copy."
+    },
+    "src/app/sentinel/_py/score.py": {
+      "name": "Risk score",
+      "description": "Combines the three detectors into one 0 to 100 risk, picks the recommendation, writes the reason, and falls back to a simple rule if models are missing."
+    }
+  }
+}

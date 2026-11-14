@@ -1,0 +1,56 @@
+{
+  "files": {
+    "src/app/sentinel/_components/agent-actions.tsx": {
+      "name": "Agent action buttons",
+      "description": "Shows an agent's status and its Quarantine, Stop and Dismiss buttons, or Release to undo a stop."
+    },
+    "src/app/sentinel/_components/agent-detail.tsx": {
+      "name": "Selected agent panel",
+      "description": "Shows everything about the agent a person picked: its job, its risk, what it did wrong and the action buttons."
+    },
+    "src/app/sentinel/_components/agent-queue.tsx": {
+      "name": "Recommendation list",
+      "description": "Lists what Sentinel recommends, one row per agent, so a person can pick one or several and act on them."
+    },
+    "src/app/sentinel/_components/event-log.tsx": {
+      "name": "What Sentinel saw",
+      "description": "Shows the latest timestamped events, such as a planted credential being touched or a recommendation being made."
+    },
+    "src/app/sentinel/_components/fleet-headline.tsx": {
+      "name": "Headline numbers",
+      "description": "Shows one plain sentence about the team and the four animated numbers: agents watched, flagged, peak risk, time to detect."
+    },
+    "src/app/sentinel/_components/fleet-scatter.tsx": {
+      "name": "Map of agents",
+      "description": "Draws each agent as a dot; normal agents cluster together and a hijacked one turns red and drifts away. Labels stay clickable when dots overlap."
+    },
+    "src/app/sentinel/_components/limits-card.tsx": {
+      "name": "What Sentinel cannot do",
+      "description": "Lists Sentinel's honest limits, such as needing a clean starting point and only recommending, never acting."
+    },
+    "src/app/sentinel/_components/patient-zero.tsx": {
+      "name": "Patient-zero card",
+      "description": "Shows the first agent to reach risk 75, when it started and what it touched. Nothing on the page uses it any more."
+    },
+    "src/app/sentinel/_components/recommendation.tsx": {
+      "name": "Approve or dismiss card",
+      "description": "Shows Sentinel's group recommendation with Approve and Dismiss buttons. Nothing on the page uses it any more."
+    },
+    "src/app/sentinel/_components/related-agents.tsx": {
+      "name": "Who it talked to",
+      "description": "Lists everyone the selected agent messaged in the last 5 minutes and which of them look infected."
+    },
+    "src/app/sentinel/_components/results-panel.tsx": {
+      "name": "Test results panel",
+      "description": "Shows the validation numbers, or says the test runs have not been done yet."
+    },
+    "src/app/sentinel/_components/tier.tsx": {
+      "name": "Risk level look",
+      "description": "One place that decides the label, colour and dot for each risk level, plus a clock helper for times."
+    },
+    "src/app/sentinel/_components/why-flagged.tsx": {
+      "name": "Why it was flagged",
+      "description": "Draws bars for the behaviours that pushed an agent's score up most, in plain words."
+    }
+  }
+}

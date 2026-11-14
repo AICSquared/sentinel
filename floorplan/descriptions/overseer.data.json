@@ -1,0 +1,40 @@
+{
+  "files": {
+    "src/app/sentinel/_py/fetch/__init__.py": {
+      "name": "Dataset downloads package",
+      "description": "Marks the dataset download scripts as one package; it holds no code."
+    },
+    "src/app/sentinel/_py/fetch/common.py": {
+      "name": "Download helpers",
+      "description": "Downloads files with retries and checks each one against its expected fingerprint, then saves samples."
+    },
+    "src/app/sentinel/_py/fetch/fetch_all.py": {
+      "name": "Download all datasets",
+      "description": "Runs every dataset download and prints what was fetched or skipped; a skipped source never stops the others."
+    },
+    "src/app/sentinel/_py/fetch/fetch_injecagent.py": {
+      "name": "InjecAgent download",
+      "description": "Downloads the InjecAgent test cases and the 50 real attack messages the hijacked agent sends."
+    },
+    "src/app/sentinel/_py/fetch/fetch_kaggle_prompts.py": {
+      "name": "Kaggle prompts download",
+      "description": "Turns the Kaggle prompt-injection file into training rows, or skips it when it has no usable label or needs a login."
+    },
+    "src/app/sentinel/_py/fetch/fetch_netflow.py": {
+      "name": "Network traffic samples",
+      "description": "Takes a 200,000-row sample of each downloaded network-traffic dataset; a person downloads the full files in a browser first."
+    },
+    "src/app/sentinel/_py/fetch/fetch_prompt_safety.py": {
+      "name": "Prompt-safety download",
+      "description": "Downloads the Hugging Face prompt-injection set Prompt Guard trains on; kept out of git because it has no licence."
+    },
+    "src/app/sentinel/_py/make_dataset.py": {
+      "name": "Simulated training data",
+      "description": "Simulates runs of 8 agents, labels each minute clean or one of four attacks, and writes the training set."
+    },
+    "src/app/sentinel/_py/record_timeline.py": {
+      "name": "Demo recorder",
+      "description": "Records a real run of the team, minute by minute, as the dashboard's offline demo, and refuses to save a run with a false alarm."
+    }
+  }
+}

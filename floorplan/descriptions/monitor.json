@@ -1,0 +1,8 @@
+{
+  "files": {
+    "src/app/sentinel/_tui/monitor.py": {
+      "name": "Terminal monitor",
+      "description": "A read-only text screen that polls the scoring server for the team's status, falling back to a saved sample."
+    }
+  }
+}

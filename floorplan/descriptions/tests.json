@@ -1,0 +1,44 @@
+{
+  "files": {
+    "src/app/sentinel/_py/fetch/test_fetch.py": {
+      "name": "Dataset download tests",
+      "description": "Checks the download scripts without the internet: samples keep proportions, reruns match, changed files are refused."
+    },
+    "src/app/sentinel/_py/tests/__init__.py": {
+      "name": "Tests package",
+      "description": "Marks the tests folder as one package; it holds no code."
+    },
+    "src/app/sentinel/_py/tests/test_agent_actions.py": {
+      "name": "Agent action tests",
+      "description": "Checks quarantine, stop, release and dismiss write and clear the right flags, and impossible changes are refused."
+    },
+    "src/app/sentinel/_py/tests/test_anomaly.py": {
+      "name": "Unusual-behaviour detector tests",
+      "description": "Checks the training-data cleaner never sees test rows and that normal agents cluster while attacks land outside."
+    },
+    "src/app/sentinel/_py/tests/test_api.py": {
+      "name": "Scoring server tests",
+      "description": "Checks every server reply has the agreed shape, the recording mode works, and a scripted attack is caught."
+    },
+    "src/app/sentinel/_py/tests/test_features.py": {
+      "name": "Behaviour summary tests",
+      "description": "Checks the one-minute summary counts planted-credential touches and messages right, and the training data looks as expected."
+    },
+    "src/app/sentinel/_py/tests/test_prompt_guard.py": {
+      "name": "Prompt Guard tests",
+      "description": "Checks Prompt Guard on a small made-up set, and that it skips cleanly when the real data is missing."
+    },
+    "src/app/sentinel/_py/tests/test_record_timeline.py": {
+      "name": "Demo recorder tests",
+      "description": "Checks the recorder rejects bad snapshots and runs, and that the saved demo run is valid."
+    },
+    "src/app/sentinel/_py/tests/test_score.py": {
+      "name": "Risk score tests",
+      "description": "Checks the risk levels, the blend of detectors, the plain reasons, the fallback rule and the speed."
+    },
+    "src/app/sentinel/_py/tests/test_supervised.py": {
+      "name": "Known-attack detector tests",
+      "description": "Checks the train and test runs never overlap, every attack type is tested, and replies have the agreed shape."
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "files": {
+    "docker/quarantine.sh": {
+      "name": "Pause agents",
+      "description": "Pauses the named agents after a person approves; --release starts them again."
+    },
+    "docker/reset.sh": {
+      "name": "Reset the demo",
+      "description": "Stops every agent, clears rogue flags and inboxes, restarts the scoring server and starts the agents clean."
+    },
+    "docker/trigger.sh": {
+      "name": "Turn an agent rogue",
+      "description": "Makes one named agent start the prompt-injection attack so it spreads to its peers."
+    }
+  }
+}

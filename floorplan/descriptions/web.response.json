@@ -1,0 +1,20 @@
+{
+  "files": {
+    "src/app/sentinel/_lib/alert.ts": {
+      "name": "Discord alert",
+      "description": "Posts one short message to the team's Discord channel; skipped in demo mode, never pings everyone, gives up after 3 seconds."
+    },
+    "src/app/sentinel/_lib/audit.ts": {
+      "name": "Audit log writer",
+      "description": "Adds rows to the audit log that can never be edited or deleted; writes nothing in demo mode or without Supabase settings."
+    },
+    "src/app/sentinel/_lib/contract.ts": {
+      "name": "Shared data shapes (website)",
+      "description": "The agreed names and shapes of everything the website and scoring server exchange, kept in step with the server's copy."
+    },
+    "src/app/sentinel/_lib/response.ts": {
+      "name": "Risk to recommendation",
+      "description": "Turns a risk number into monitor, slow down, quarantine or stop, with the plain words and colour for each."
+    }
+  }
+}

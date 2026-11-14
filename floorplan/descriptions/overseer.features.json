@@ -1,0 +1,12 @@
+{
+  "files": {
+    "src/app/sentinel/_py/features.py": {
+      "name": "One-minute behaviour summary",
+      "description": "Turns each agent's last 60 seconds of actions into ten numbers, plus how suspicious its messages read."
+    },
+    "src/app/sentinel/_py/graph.py": {
+      "name": "Contact map",
+      "description": "Remembers who messaged whom for 5 minutes and marks partners as likely infected after 10+ messages from a risky agent."
+    }
+  }
+}

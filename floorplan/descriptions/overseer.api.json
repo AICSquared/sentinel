@@ -1,0 +1,38 @@
+{
+  "files": {
+    "src/app/sentinel/_py/__init__.py": {
+      "name": "Scoring server package",
+      "description": "Marks the scoring server's folder as one package; it holds no code."
+    },
+    "src/app/sentinel/_py/api.py": {
+      "name": "Scoring server",
+      "description": "Receives every agent action, scores each agent every 2 seconds, serves the team's status, and carries out a person's quarantine, stop or release."
+    }
+  },
+  "routes": {
+    "GET /health": {
+      "name": "Server check",
+      "description": "Replies that the server is up, whether it runs live or on the recording, and which scoring parts loaded."
+    },
+    "POST /events": {
+      "name": "Report an action",
+      "description": "Where each agent reports every action it takes; feeds the next 2-second scoring round."
+    },
+    "POST /score": {
+      "name": "Score one minute",
+      "description": "Scores one agent's one-minute summary and returns its risk, reason, partners and recommendation."
+    },
+    "GET /agents": {
+      "name": "Team status",
+      "description": "Returns every agent's risk, position, reason and status, patient zero, recent events and who messaged whom."
+    },
+    "POST /decision": {
+      "name": "Record a decision",
+      "description": "Records that a person approved or dismissed Sentinel's recommendation."
+    },
+    "POST /agents/{agent_id}/action": {
+      "name": "Act on one agent",
+      "description": "Quarantines, stops, releases or dismisses one agent by writing the flag that agent obeys; only a person's click sends this."
+    }
+  }
+}
