@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { TIERS } from "@/app/sentinel/_lib/contract";
 import { AgentNode, Callout, DecoyKey, FrameTicks, Overseer } from "./drawing";
+import { fitFrame, restingAgents } from "./frame";
 import { spoken, type Story } from "./story";
 
 const pill = "inline-flex min-h-11 items-center rounded-full px-6 text-[15px] font-medium";
@@ -15,14 +16,15 @@ export function Hero({ story }: { story: Story }) {
   const t0 = story.ticks[0];
   const W = 540;
   const H = 600;
-  // Zoomed to the normal cluster: at rest, all agents sit close together.
-  const map = (x: number, y: number): [number, number] => [40 + ((x - 0.25) / 0.25) * 400, 500 - ((y - 0.29) / 0.15) * 270];
+  // Zoomed to the normal cluster: at rest, all agents sit close together. The frame is fitted to where this
+  // recording's agents actually rest (never to constants from an older recording) and kept inside the ring.
+  const map = fitFrame(restingAgents(story), { left: 90, top: 285, right: 390, bottom: 480 }, 0.12);
   const pts = t0.agents.map((a) => ({ ...a, p: map(a.x, a.y) }));
   const ov: [number, number] = [245, 96];
   const key: [number, number] = [372, 236];
   const far = [...pts].sort((a, b) => b.p[1] - a.p[1])[0];
   return (
-    <section aria-labelledby="hero-h" className="grid min-h-[calc(100svh-5rem)] items-center gap-10 px-4 pt-6 pb-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-16">
+    <section aria-labelledby="hero-h" className="grid min-h-[calc(100svh-4rem)] items-center gap-10 px-4 pt-6 pb-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-16">
       <div className="max-w-[40rem]">
         <h1 id="hero-h" className={`${display} text-[clamp(2.75rem,6.6vw,5.25rem)] leading-[0.98]`}>
           One hijacked AI agent can infect its whole team.

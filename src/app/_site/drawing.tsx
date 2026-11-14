@@ -40,22 +40,47 @@ export function RoleGlyph({ role, x, y, className }: { role: Role; x: number; y:
   }
 }
 
-/** One agent: an outlined circle with its role glyph. Rogue = filled; infected = ringed; flagged = amber. */
+// Motion for the drawings (Emil Kowalski's rules): a state change is a short ease-out fade (200 ms, a strong
+// custom curve), never a pop; things that move glide with the same curve over `GLIDE`. The recording is
+// explanatory and seen once, so the glide may run longer than UI motion. Reduced motion keeps colour and
+// opacity changes and drops the movement (see the `motion-reduce:` classes), handled in CSS so it also holds
+// on the server-rendered first paint.
+export const EASE_OUT = "ease-[cubic-bezier(0.23,1,0.32,1)]";
+export const GLIDE = `duration-500 ${EASE_OUT} motion-reduce:transition-none`;
+const SETTLE = `transition-[opacity,stroke,fill,transform] duration-200 ${EASE_OUT}`;
+// A thin ground-coloured halo behind label text, so a dot or line passing under it never makes it unreadable.
+const HALO = "stroke-ground stroke-[3px] [paint-order:stroke] [stroke-linejoin:round]";
+
+/**
+ * One agent: an outlined circle with its role glyph. Rogue = filled; infected = ringed; flagged = amber.
+ * Every layer stays mounted and switches with opacity, so a change in state fades instead of popping in.
+ */
 export function AgentNode({ role, x, y, mode, r = 18 }: { role: Role; x: number; y: number; mode: NodeMode; r?: number }) {
-  if (mode === "rogue") {
-    return (
-      <g>
-        <circle cx={x} cy={y} r={r + 2} className="fill-crit" />
-        <RoleGlyph role={role} x={x} y={y} className="stroke-ground" />
-      </g>
-    );
-  }
-  const ring = mode === "infected" ? "stroke-crit" : mode === "flagged" ? "stroke-warn" : "stroke-ink";
+  const rogue = mode === "rogue";
+  const infected = mode === "infected";
+  const flagged = mode === "flagged";
+  const ring = infected ? "stroke-crit" : flagged ? "stroke-warn" : "stroke-ink";
   return (
     <g>
-      <circle cx={x} cy={y} r={r} className={`fill-ground ${ring}`} strokeWidth={mode === "normal" ? 1 : 1.4} />
-      {mode === "infected" && <circle cx={x} cy={y} r={r + 7} fill="none" className="stroke-crit" strokeWidth={1} strokeDasharray="2 3" />}
-      <RoleGlyph role={role} x={x} y={y} className={mode === "infected" ? "stroke-crit" : mode === "flagged" ? "stroke-warn" : "stroke-ink"} />
+      <circle cx={x} cy={y} r={r + 2} className={`fill-crit ${SETTLE} ${rogue ? "opacity-100" : "opacity-0"}`} />
+      <circle cx={x} cy={y} r={r} className={`fill-ground ${ring} ${SETTLE} ${rogue ? "opacity-0" : "opacity-100"}`} strokeWidth={mode === "normal" ? 1 : 1.4} />
+      {/* the infected ring grows in from 0.9, never from nothing */}
+      <circle
+        cx={x}
+        cy={y}
+        r={r + 7}
+        fill="none"
+        className={`stroke-crit origin-center ${SETTLE} ${infected ? "scale-100 opacity-100" : "scale-90 opacity-0 motion-reduce:scale-100"}`}
+        style={{ transformBox: "fill-box" }}
+        strokeWidth={1}
+        strokeDasharray="2 3"
+      />
+      <RoleGlyph
+        role={role}
+        x={x}
+        y={y}
+        className={`${rogue ? "stroke-ground" : infected ? "stroke-crit" : flagged ? "stroke-warn" : "stroke-ink"} ${SETTLE}`}
+      />
     </g>
   );
 }
@@ -71,6 +96,7 @@ export function Callout({
   align = "start",
   tone = "ink",
   onPhones = "show",
+  show = true,
 }: {
   ax: number;
   ay: number;
@@ -82,21 +108,23 @@ export function Callout({
   tone?: "ink" | "crit";
   /** The drawing shrinks on phones, and so would the label: "grow" keeps it readable, "hide" drops it. */
   onPhones?: "show" | "grow" | "hide";
+  /** Fades the callout in and out (200 ms) instead of mounting it, so it can follow the story. */
+  show?: boolean;
 }) {
   const bend = align === "start" ? lx - 8 : lx + 8;
   const tx = align === "start" ? lx + 6 : lx - 6;
   const line = tone === "crit" ? "stroke-crit" : "stroke-ink-3";
   const grow = onPhones === "grow";
   return (
-    <g className={onPhones === "hide" ? "max-sm:hidden" : undefined}>
+    <g aria-hidden={show ? undefined : true} className={`${onPhones === "hide" ? "max-sm:hidden " : ""}transition-opacity duration-200 ${EASE_OUT} ${show ? "opacity-100" : "opacity-0"}`}>
       <circle cx={ax} cy={ay} r={2} className={tone === "crit" ? "fill-crit" : "fill-ink-3"} />
       <polyline points={`${ax},${ay} ${bend},${ly} ${lx},${ly}`} fill="none" className={line} strokeWidth={1} strokeDasharray="1 3" strokeLinecap="round" />
       {id && (
-        <text x={tx} y={ly - (grow ? 6 : 3)} textAnchor={align} className={`font-mono text-[12px] ${grow ? "max-sm:text-[17px]" : ""} ${tone === "crit" ? "fill-crit-tag" : "fill-ink"}`}>
+        <text x={tx} y={ly - (grow ? 6 : 3)} textAnchor={align} className={`${HALO} font-mono text-[12px] ${grow ? "max-sm:text-[17px]" : ""} ${tone === "crit" ? "fill-crit-tag" : "fill-ink"}`}>
           {id}
         </text>
       )}
-      <text x={tx} y={ly + (grow ? 20 : 15)} textAnchor={align} className={`fill-ink-2 text-[13px] ${grow ? "max-sm:text-[17px]" : ""}`}>
+      <text x={tx} y={ly + (grow ? 20 : 15)} textAnchor={align} className={`${HALO} fill-ink-2 text-[13px] ${grow ? "max-sm:text-[17px]" : ""}`}>
         {text}
       </text>
     </g>
