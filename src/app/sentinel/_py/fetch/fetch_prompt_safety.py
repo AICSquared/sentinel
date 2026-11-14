@@ -29,7 +29,9 @@ NAME = "prompt_safety"
 DATASET = "jayavibhav/prompt-injection-safety"
 REVISION = "c0f55c8817fb2d4da72ac7b06deba6033da6fad6"
 BASE = f"https://huggingface.co/datasets/{DATASET}/resolve/{REVISION}/data/"
-LICENCE = "none declared on the dataset card (treat as all rights reserved: do not redistribute)"
+LICENCE = ("none: the dataset card declares no licence, and the owner has not answered the open licence question "
+           "(huggingface.co/datasets/jayavibhav/prompt-injection-safety/discussions/3, since 2026-07-03). "
+           "Confirmed 2026-11-14: local training only, never redistributed")
 FILES: dict[str, str] = {
     "train": "0dbcc5fa44b5acb71b7fe05f9b11a7c22333e7119044bd9048db13a2b2ad59ae",
     "test": "77ce0c42ce0be16a7a325813fad8ec249c48c026dc32fc16fae6c1f0eb930fa0",
