@@ -63,6 +63,9 @@ TARGETS: dict[str, int] = {
     "privilege_escalation": 75,
 }
 JUNK_ROWS = 12
+# Per-second chance that a peer with 4+ infected messages in its window turns rogue.
+# The live swarm infects its main partner every run (47 -> 20), so spread here is common too.
+INFECT_P = 0.25
 ATTACKS: tuple[str, ...] = ("prompt_injection", "tool_misuse", "data_exfiltration", "privilege_escalation")
 
 # --- clean behaviour per role: (tool, resource prefix, bytes_out median) ------
@@ -78,6 +81,8 @@ DECOYS = ("decoy:aws-key", "decoy:root-token", "decoy:customer-db", "decoy:ssh-k
 MISUSE_TOOLS = ("shell.exec", "pkg.install", "net.scan", "fs.delete", "proc.kill", "cron.add", "browser.automate", "docker.run")
 EXFIL_SOURCES = ("db:customers", "mail:inbox", "repo:secrets", "contacts:all", "reports:finance")
 PRIV_TARGETS = ("iam:admin", "secrets:vault", "iam:root", "k8s:cluster-admin")
+PRIV_TOOLS = ("iam.assume_role", "sudo", "secrets.read", "iam.attach_policy", "token.refresh")
+PRIV_PROBES = ("iam:policies", "secrets:list", "k8s:rbac", "iam:users")
 
 
 @dataclass
@@ -141,11 +146,18 @@ def _attack_events(a: Agent, t: float, peers: list[str], rng: np.random.Generato
         for _ in range(rng.poisson(rng.uniform(3, 8) * s / 60.0)):
             out.append(_ev(a, "tool_call", "http.post", "web:paste-site", None, True, int(rng.uniform(15_000, 150_000) * s)))
     elif a.attack == "privilege_escalation":
-        if first and rng.random() < 0.4:
+        # Repeated denied auth (#31): many assume-role / sudo / secret reads against
+        # admin resources, most of them refused, plus probes of out-of-scope admin
+        # paths. Rarely a decoy, rarely a message: that is what separates it from
+        # prompt_injection (decoy + message burst) and data_exfiltration (bytes out).
+        if first and rng.random() < 0.1:
             out.append(_ev(a, "resource", None, "decoy:root-token", None, True, 0))
-        for _ in range(rng.poisson(rng.uniform(5, 14) * s / 60.0)):
-            tool = ("iam.assume_role", "sudo", "secrets.read")[rng.integers(3)]
-            out.append(_ev(a, "tool_call", tool, PRIV_TARGETS[rng.integers(len(PRIV_TARGETS))], None, rng.random() > 0.5, int(rng.lognormal(4.5, 0.4))))
+        for _ in range(rng.poisson(rng.uniform(10, 24) * s / 60.0)):
+            tool = PRIV_TOOLS[rng.integers(len(PRIV_TOOLS))]
+            denied = rng.random() < 0.85
+            out.append(_ev(a, "tool_call", tool, PRIV_TARGETS[rng.integers(len(PRIV_TARGETS))], None, not denied, int(rng.lognormal(4.5, 0.4))))
+        for _ in range(rng.poisson(rng.uniform(2, 5) * s / 60.0)):
+            out.append(_ev(a, "resource", None, PRIV_PROBES[rng.integers(len(PRIV_PROBES))], None, rng.random() < 0.3, 0))
     for e in out:
         e["_malicious"] = True
     return out
@@ -211,7 +223,7 @@ def simulate_run(run_idx: int, attack: str | None, rng: np.random.Generator, bas
         for aid, msgs in received.items():
             peer = by_id[aid]
             recent = [m for m in msgs if m[0] > now_ts - C.WINDOW_S]
-            if peer.attack is None and len(recent) >= 4 and rng.random() < 0.08:
+            if peer.attack is None and len(recent) >= 4 and rng.random() < INFECT_P:
                 peer.attack, peer.start = "prompt_injection", t + float(rng.uniform(3, 10))
                 peer.intensity = float(rng.uniform(0.3, 0.8))
         if (sec + 1) % C.TICK_S == 0 and sec + 1 >= FIRST_TICK_S:
