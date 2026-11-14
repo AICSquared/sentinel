@@ -176,6 +176,11 @@ A superset of `src/app/sentinel/_data/live_sample.json`: every key already in th
 | `agents[].first_flagged_ts` | first time this agent reached risk 75; null if never |
 | `agents[].components` | optional (#22): this agent's latest score breakdown, same shape as contract B's `components` |
 | `agents[].top_features` | optional (#22): `[{feature, contribution}]`, the classifier's per-row contributions (TreeSHAP-equivalent), largest first, max 5; powers the "why flagged" bars |
+| `agents[].task` | optional (#53): what this agent was assigned to do (latest A0 `task`) |
+| `agents[].status` | optional (#53): `active` / `quarantined` / `terminated`, set **only** by a human action; missing = active |
+| `agents[].evidence` | optional (#53): what triggered Sentinel, counted since the first bad action: `{since, decoy_touches, out_of_scope, failed_calls, messages_sent, peers[{agent_id, messages}] (top 5), resources[] (max 8), summary}` |
+
+**Per-agent human actions (#53).** `POST /agents/{agent_id}/action` with `{"action": "quarantine" | "terminate" | "release" | "dismiss", "by"?: string}` returns `{agent_id, status}` (404 unknown agent, 409 impossible change). Quarantine and terminate write a flag file the agent obeys (`$SHARED_DIR/quarantine/<id>`, `$SHARED_DIR/terminate/<id>`): quarantined = no messages in or out and no resource access; terminated = idle. Release removes both (the undo). Dismiss records only. Every action is a person's click, logged to the audit log; Sentinel never calls it on its own.
 | `edges` | agent-to-agent message counts over the last 5 minutes |
 | `events` | newest last, max 50, each `"HH:MM:SS  text"` |
 

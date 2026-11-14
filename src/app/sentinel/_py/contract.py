@@ -38,8 +38,11 @@ CONTAINMENT_STATES: tuple[str, ...] = ("none", "recommended", "approved", "dismi
 # --- Contract A0: optional event fields (T1, #22) ----------------------------
 # `text`: the message or tool-output body, for Prompt Guard. Optional: events
 # without it are valid. Senders and the overseer truncate it to TEXT_MAX_CHARS.
-OPTIONAL_EVENT_FIELDS: tuple[str, ...] = ("text",)
+OPTIONAL_EVENT_FIELDS: tuple[str, ...] = ("text", "task")
 TEXT_MAX_CHARS = 2000
+# `task` (#53): the agent's assignment in plain words ("Maintains the payments service code and CI"),
+# sent with every event. The overseer keeps the latest per agent. Truncated to TASK_MAX_CHARS.
+TASK_MAX_CHARS = 200
 
 # --- Response tiers (same table as _lib/response.ts) ------------------------
 # (min_risk, max_risk, action), inclusive on both ends.
@@ -129,8 +132,26 @@ OPTIONAL_ROW_COLUMNS: tuple[str, ...] = (PROMPT_RISK_COLUMN,)
 # agents[].top_features: [{"feature": name, "contribution": float}], largest |contribution|
 #   first, at most TOP_FEATURES_MAX; name is a MODEL_INPUTS column or PROMPT_RISK_COLUMN.
 # Both are optional: older snapshots and the demo timeline omit them.
-OPTIONAL_AGENT_FIELDS: tuple[str, ...] = ("components", "top_features")
+OPTIONAL_AGENT_FIELDS: tuple[str, ...] = ("components", "top_features", "task", "status", "evidence")
 TOP_FEATURES_MAX = 5
+
+# --- Per-agent human actions (#53) -------------------------------------------
+# agents[].task: the agent's assignment (from its events).
+# agents[].status: set ONLY by a human action; missing means "active".
+# agents[].evidence: what triggered Sentinel, counted since the agent's first bad action:
+#   {since: ISO | None, decoy_touches, out_of_scope, failed_calls, messages_sent: int,
+#    peers: [{agent_id, messages}] (top EVIDENCE_PEERS_MAX), resources: [str] (decoy and
+#    out-of-scope resources touched, max EVIDENCE_RESOURCES_MAX), summary: one plain sentence}.
+# POST /agents/{agent_id}/action {"action": AGENT_ACTIONS item, "by"?: str} -> {"agent_id", "status"}.
+#   quarantine / terminate write a flag file the agent obeys, under SHARED_DIR/<QUARANTINE_DIR|TERMINATE_DIR>/<id>;
+#   release removes both; dismiss records only. 404 unknown agent, 409 impossible change.
+#   Every action is a person's click; Sentinel never calls it on its own.
+AGENT_STATUSES: tuple[str, ...] = ("active", "quarantined", "terminated")
+AGENT_ACTIONS: tuple[str, ...] = ("quarantine", "terminate", "release", "dismiss")
+QUARANTINE_DIR = "quarantine"
+TERMINATE_DIR = "terminate"
+EVIDENCE_PEERS_MAX = 5
+EVIDENCE_RESOURCES_MAX = 8
 
 # --- _data/validation.json optional provenance (#22) ------------------------
 # source: {block: "synthetic" | "real"} for blocks runs / per_type / novel_attack /
