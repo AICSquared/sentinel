@@ -83,7 +83,7 @@ export default async function ExamplePage({ searchParams }: { searchParams: Prom
         ) : (
           <ol className="rounded-[var(--radius-card)] bg-surface py-1.5">
             {jobs.map((j) => (
-              <li key={j.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 border-b border-[#eeece7] px-5 py-3 last:border-b-0">
+              <li key={j.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-4 border-b border-line px-5 py-3 last:border-b-0">
                 <span className="min-w-0">
                   <strong className="font-semibold">{tracks.find((t) => t.slug === j.track)?.name ?? "Shared"}.</strong>{" "}
                   <span className="text-ink-2">{String(j.input?.note || "No note")}</span>
