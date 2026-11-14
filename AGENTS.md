@@ -117,3 +117,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Worktree convention
+- If your Claude Code session has worktree mode ON, it already made your worktree. Do NOT also run `git worktree add` from the start-task skill — just create branch `<issue#>-<slug>` here and work.
+- Each worktree is a fresh folder. Before building, run:
+  `printf 'BOARD_LEAD=1\nBOARD_ISSUE=2\nBOARD_WATCH=1,2\n' > .board.env` then `pnpm install` (and your pip installs).
