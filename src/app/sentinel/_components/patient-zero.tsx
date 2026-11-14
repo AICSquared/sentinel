@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui";
 import { type Agent, clock, secondsBetween } from "./tier";
+import { WhyFlagged } from "./why-flagged";
 
 /** The first agent to reach risk 75: when it started, what it did, what it touched. */
 export function PatientZero({ agent, originTs }: { agent: Agent | null; originTs: string | null }) {
@@ -45,6 +46,7 @@ export function PatientZero({ agent, originTs }: { agent: Agent | null; originTs
           </dd>
         </div>
       </dl>
+      <WhyFlagged features={agent.top_features} />
     </Card>
   );
 }
