@@ -6,6 +6,6 @@ WORKDIR /app
 COPY swarm.py agent.py payloads.json ./
 # /shared is owned by the agent user so the named volume (inboxes, rogue flags) is writable
 # by non-root agents: Docker copies this directory's ownership into a fresh volume.
-RUN useradd --create-home --uid 10001 agent && mkdir -p /shared/inbox /shared/rogue && chown -R agent /shared
+RUN useradd --create-home --uid 10001 agent && mkdir -p /shared/inbox /shared/rogue /shared/quarantine /shared/terminate && chown -R agent /shared
 USER agent
 CMD ["python", "agent.py"]

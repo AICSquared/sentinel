@@ -31,7 +31,8 @@ def assert_b2(body: dict) -> None:
     assert body["sentinel"]["containment"] in {"none", "recommended", "approved", "dismissed"}
     assert len(body["sentinel"]["fleet_risk_history"]) <= 12
     for a in body["agents"]:
-        assert set(a) - {"components", "top_features"} == B2_AGENT  # both optional (T7, #39)
+        # all optional: components (T7), top_features (#39), task / status / evidence (#53)
+        assert set(a) - {"components", "top_features", "task", "status", "evidence"} == B2_AGENT
         if "top_features" in a:
             assert 1 <= len(a["top_features"]) <= 5
             assert all(set(f) == {"feature", "contribution"} for f in a["top_features"])
@@ -157,6 +158,38 @@ def test_live_decision_flow(live):
     assert client.get("/agents").json()["sentinel"]["containment"] == "approved"
     overseer.tick(time.time())
     assert client.get("/agents").json()["sentinel"]["containment"] == "approved"  # stays decided
+
+
+def test_agent_flagged_after_a_decision_reopens_containment(live):
+    client, overseer = live
+    script_attack(client, "agent-47")
+    overseer.tick(time.time())
+    assert client.get("/agents").json()["sentinel"]["containment"] == "recommended"
+    client.post("/decision", json={"action": "approve"})
+    overseer.tick(time.time())
+    body = client.get("/agents").json()
+    assert body["sentinel"]["containment"] == "approved"  # agent-47 was covered by the click: stays approved
+
+    script_attack(client, "agent-20")  # a second agent turns bad AFTER the human decided
+    overseer.tick(time.time())
+    body = client.get("/agents").json()
+    assert body["sentinel"]["containment"] == "recommended"  # it needs its own decision
+    assert any("new recommendation for agent-20" in e for e in body["events"])
+    assert "agent-47" not in body["events"][-1]  # the new line names only the new agent
+
+    assert client.post("/decision", json={"action": "dismiss"}).json() == {"containment": "dismissed"}
+    overseer.tick(time.time())
+    assert client.get("/agents").json()["sentinel"]["containment"] == "dismissed"  # both now covered: no re-open
+
+
+def test_a_decision_with_nothing_new_flagged_never_reopens(live):
+    client, overseer = live
+    script_attack(client)
+    overseer.tick(time.time())
+    client.post("/decision", json={"action": "approve"})
+    for _ in range(3):
+        overseer.tick(time.time())
+        assert client.get("/agents").json()["sentinel"]["containment"] == "approved"
 
 
 def test_live_infected_verdict_needs_10_messages_and_partner_risk(live):
