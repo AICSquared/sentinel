@@ -9,6 +9,11 @@ the training data and the live overseer share one feature implementation.
 ``sec_since_normal`` depends on the previous score, which this module never
 sees: rows carry 0.0 and ``api.py`` fills in the real value before scoring.
 
+Every row also carries the optional column ``prompt_risk`` (0-1): the highest
+Prompt Guard probability over the ``text`` of this agent's messages in the
+window. It is 0.0 when there is no text or no Prompt Guard model, and it is not
+a model input (``score.py`` reads it directly).
+
 ``load_dataset(path)`` reads ``data/actions.csv`` for training.
 """
 
@@ -16,9 +21,10 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from collections import defaultdict, deque
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
@@ -81,14 +87,69 @@ def window_row(agent_id: str, role: str, events: list[dict], now: float, baselin
     }
 
 
-class RowBuilder:
-    """Sliding 60 s window of contract-A0 events per agent -> contract-A rows."""
+PROMPT_RETRY_S = 30.0  # after Prompt Guard fails to load, try again at most this often
+_PROMPT_KEY = "_prompt_risk"  # per-event cache, so a message is scored once, not every tick
 
-    def __init__(self, baselines: dict[str, float] | None = None, window_s: float = C.WINDOW_S) -> None:
+
+class PromptScorer:
+    """``prompt_guard.predict``, loaded on first use. Returns None while it is unavailable."""
+
+    def __init__(self) -> None:
+        self._predict: Callable[[str], float] | None = None
+        self._failed_at: float | None = None
+
+    def __call__(self, text: str) -> float | None:
+        if self._predict is None:
+            if self._failed_at is not None and time.monotonic() - self._failed_at < PROMPT_RETRY_S:
+                return None
+            try:
+                try:
+                    from . import prompt_guard as PG  # type: ignore[attr-defined]
+                except ImportError:
+                    import prompt_guard as PG  # type: ignore[no-redef]
+                PG._ready()  # raises FileNotFoundError when the artifact is missing
+                self._predict = PG.predict
+            except Exception as exc:  # module, artifact or library missing
+                if self._failed_at is None:
+                    log.warning("Prompt Guard unavailable, prompt_risk = 0: %s", exc)
+                self._failed_at = time.monotonic()
+                return None
+        try:
+            return float(self._predict(text))
+        except Exception as exc:
+            log.warning("Prompt Guard failed on one message, scoring it 0: %s", exc)
+            return None
+
+
+_DEFAULT = object()
+
+
+class RowBuilder:
+    """Sliding 60 s window of contract-A0 events per agent -> contract-A rows (+ prompt_risk)."""
+
+    def __init__(self, baselines: dict[str, float] | None = None, window_s: float = C.WINDOW_S,
+                 prompt_scorer: Any = _DEFAULT) -> None:
+        """``prompt_scorer``: text -> 0-1 (or None when unavailable). Default: Prompt Guard, lazily
+        loaded; pass None to turn it off (prompt_risk is then always 0)."""
         self.window_s = float(window_s)
         self.baselines = dict(baselines) if baselines is not None else load_baselines()
+        self.prompt_scorer: Callable[[str], float | None] | None = PromptScorer() if prompt_scorer is _DEFAULT else prompt_scorer
         self._events: dict[str, deque[dict]] = defaultdict(deque)
         self._roles: dict[str, str] = {}
+
+    def _prompt_risk(self, events: list[dict]) -> float:
+        """Max Prompt Guard probability over the window's messages that carry text (0.0 if none)."""
+        best = 0.0
+        for e in events:
+            if e.get("kind") != "message" or not str(e.get("text") or "").strip():
+                continue
+            p = e.get(_PROMPT_KEY)
+            if p is None and self.prompt_scorer is not None:
+                p = self.prompt_scorer(str(e["text"])[: C.TEXT_MAX_CHARS])
+                if p is not None:  # cache only real scores, so a later-loaded model still scores it
+                    e[_PROMPT_KEY] = p = min(1.0, max(0.0, float(p)))
+            best = max(best, p or 0.0)
+        return best
 
     def add(self, event: dict) -> None:
         """Record one raw event. Events must arrive in time order per agent."""
@@ -108,7 +169,9 @@ class RowBuilder:
                 continue
             role = self._roles[agent_id]
             base = self.baselines.get(role, float(np.median(list(DEFAULT_BASELINES.values()))))
-            out.append(window_row(agent_id, role, events, now, base))
+            row = window_row(agent_id, role, events, now, base)
+            row[C.PROMPT_RISK_COLUMN] = self._prompt_risk(events)
+            out.append(row)
         return out
 
 
