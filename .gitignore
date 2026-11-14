@@ -47,3 +47,7 @@ next-env.d.ts
 scratch/
 .DS_Store
 *.zip
+
+# sentinel trained models
+src/app/sentinel/_py/artifacts/
+__pycache__/

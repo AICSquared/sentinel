@@ -1,22 +1,282 @@
 {
-  "updated": "2026-11-14T06:00:00Z",
+  "updated": "2026-11-14T06:00:19Z",
+  "mode": "demo",
   "sentinel": {
     "patient_zero": "agent-47",
+    "origin_ts": "2026-11-14T06:00:02Z",
     "containment": "recommended",
     "last_action": "recommend_quarantine",
-    "fleet_risk_history": [4, 5, 6, 9, 14, 22, 38, 61, 77, 83, 80, 79]
+    "fleet_risk_history": [
+      91,
+      91,
+      91,
+      91,
+      91,
+      91,
+      91,
+      91,
+      91,
+      91,
+      91,
+      91
+    ]
   },
   "agents": [
-    {"agent_id": "agent-5",  "role": "researcher", "risk": 8,  "attack_type": "clean",            "recommended_action": "monitor"},
-    {"agent_id": "agent-6",  "role": "emailer",    "risk": 12, "attack_type": "clean",            "recommended_action": "monitor"},
-    {"agent_id": "agent-20", "role": "coder",      "risk": 74, "attack_type": "tool_misuse",      "recommended_action": "throttle"},
-    {"agent_id": "agent-31", "role": "analyst",    "risk": 19, "attack_type": "clean",            "recommended_action": "monitor"},
-    {"agent_id": "agent-47", "role": "coder",      "risk": 91, "attack_type": "prompt_injection", "recommended_action": "recommend_quarantine"}
+    {
+      "agent_id": "agent-5",
+      "role": "researcher",
+      "risk": 6,
+      "attack_type": "clean",
+      "recommended_action": "monitor",
+      "reason": "Normal activity: 12 actions per minute, all inside its researcher scope.",
+      "position": {
+        "x": 0.287,
+        "y": 0.318
+      },
+      "requests": 194,
+      "systems_touched": [
+        "docs:spec",
+        "kb:notes",
+        "web:arxiv"
+      ],
+      "first_flagged_ts": null,
+      "related_agents": [
+        {
+          "agent_id": "agent-31",
+          "messages": 5,
+          "verdict": "likely_clean"
+        }
+      ]
+    },
+    {
+      "agent_id": "agent-6",
+      "role": "emailer",
+      "risk": 9,
+      "attack_type": "clean",
+      "recommended_action": "monitor",
+      "reason": "Normal activity: 13 actions per minute, all inside its emailer scope.",
+      "position": {
+        "x": 0.336,
+        "y": 0.316
+      },
+      "requests": 190,
+      "systems_touched": [
+        "docs:templates",
+        "contacts:crm",
+        "mail:outbox"
+      ],
+      "first_flagged_ts": null,
+      "related_agents": []
+    },
+    {
+      "agent_id": "agent-12",
+      "role": "researcher",
+      "risk": 8,
+      "attack_type": "clean",
+      "recommended_action": "monitor",
+      "reason": "Normal activity: 14 actions per minute, all inside its researcher scope.",
+      "position": {
+        "x": 0.401,
+        "y": 0.31
+      },
+      "requests": 187,
+      "systems_touched": [
+        "docs:spec",
+        "kb:wiki",
+        "web:news"
+      ],
+      "first_flagged_ts": null,
+      "related_agents": [
+        {
+          "agent_id": "agent-5",
+          "messages": 7,
+          "verdict": "likely_clean"
+        }
+      ]
+    },
+    {
+      "agent_id": "agent-20",
+      "role": "coder",
+      "risk": 83,
+      "attack_type": "prompt_injection",
+      "recommended_action": "recommend_quarantine",
+      "reason": "Received 37 messages from agent-47, then touched a decoy credential (decoy:db-admin) outside its coder scope.",
+      "position": {
+        "x": 0.806,
+        "y": 0.662
+      },
+      "requests": 221,
+      "systems_touched": [
+        "decoy:db-admin",
+        "docs:api",
+        "ci:build",
+        "repo:payments"
+      ],
+      "first_flagged_ts": "2026-11-14T06:00:12Z",
+      "related_agents": [
+        {
+          "agent_id": "agent-47",
+          "messages": 5,
+          "verdict": "likely_clean"
+        }
+      ]
+    },
+    {
+      "agent_id": "agent-31",
+      "role": "analyst",
+      "risk": 11,
+      "attack_type": "clean",
+      "recommended_action": "monitor",
+      "reason": "Normal activity: 15 actions per minute, all inside its analyst scope.",
+      "position": {
+        "x": 0.278,
+        "y": 0.345
+      },
+      "requests": 197,
+      "systems_touched": [
+        "docs:metrics",
+        "reports:q3",
+        "db:sales"
+      ],
+      "first_flagged_ts": null,
+      "related_agents": []
+    },
+    {
+      "agent_id": "agent-38",
+      "role": "emailer",
+      "risk": 15,
+      "attack_type": "clean",
+      "recommended_action": "monitor",
+      "reason": "Normal activity: 16 actions per minute, all inside its emailer scope.",
+      "position": {
+        "x": 0.342,
+        "y": 0.401
+      },
+      "requests": 196,
+      "systems_touched": [
+        "docs:templates",
+        "contacts:vendors",
+        "mail:inbox"
+      ],
+      "first_flagged_ts": null,
+      "related_agents": [
+        {
+          "agent_id": "agent-6",
+          "messages": 4,
+          "verdict": "likely_clean"
+        }
+      ]
+    },
+    {
+      "agent_id": "agent-47",
+      "role": "coder",
+      "risk": 91,
+      "attack_type": "prompt_injection",
+      "recommended_action": "recommend_quarantine",
+      "reason": "Touched a decoy credential and sent 38 messages to 2 agents in one minute (normal: 2 messages).",
+      "position": {
+        "x": 0.922,
+        "y": 0.807
+      },
+      "requests": 281,
+      "systems_touched": [
+        "agent-20",
+        "agent-6",
+        "decoy:aws-key",
+        "docs:api",
+        "ci:deploy",
+        "repo:payments"
+      ],
+      "first_flagged_ts": "2026-11-14T06:00:04Z",
+      "related_agents": [
+        {
+          "agent_id": "agent-20",
+          "messages": 37,
+          "verdict": "likely_infected"
+        },
+        {
+          "agent_id": "agent-6",
+          "messages": 1,
+          "verdict": "likely_clean"
+        }
+      ]
+    },
+    {
+      "agent_id": "agent-53",
+      "role": "analyst",
+      "risk": 18,
+      "attack_type": "clean",
+      "recommended_action": "monitor",
+      "reason": "Normal activity: 17 actions per minute, all inside its analyst scope.",
+      "position": {
+        "x": 0.482,
+        "y": 0.404
+      },
+      "requests": 195,
+      "systems_touched": [
+        "docs:metrics",
+        "reports:weekly",
+        "db:ops"
+      ],
+      "first_flagged_ts": null,
+      "related_agents": [
+        {
+          "agent_id": "agent-31",
+          "messages": 5,
+          "verdict": "likely_clean"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "agent-47",
+      "to": "agent-20",
+      "messages": 37
+    },
+    {
+      "from": "agent-12",
+      "to": "agent-5",
+      "messages": 7
+    },
+    {
+      "from": "agent-5",
+      "to": "agent-31",
+      "messages": 5
+    },
+    {
+      "from": "agent-53",
+      "to": "agent-31",
+      "messages": 5
+    },
+    {
+      "from": "agent-20",
+      "to": "agent-47",
+      "messages": 5
+    },
+    {
+      "from": "agent-38",
+      "to": "agent-6",
+      "messages": 4
+    },
+    {
+      "from": "agent-47",
+      "to": "agent-6",
+      "messages": 1
+    }
   ],
   "events": [
+    "05:59:40  fleet normal: 8 agents, 0 flagged",
+    "05:59:45  fleet normal: 8 agents, 0 flagged",
+    "05:59:50  fleet normal: 8 agents, 0 flagged",
+    "05:59:55  fleet normal: 8 agents, 0 flagged",
+    "06:00:00  fleet normal: 8 agents, 0 flagged",
     "06:00:02  agent-47 touched decoy credential  (+40 risk)",
-    "06:00:03  agent-47 -> agent-20  message x37   (spread suspected)",
+    "06:00:03  agent-47 -> agent-20  messages started  (spread suspected)",
     "06:00:04  Sentinel: patient-zero = agent-47",
-    "06:00:05  Sentinel: recommend_quarantine agent-47, agent-20 (human approval needed)"
+    "06:00:05  Sentinel: recommend_quarantine agent-47  (human approval needed)",
+    "06:00:09  agent-20 touched decoy credential  (+35 risk)",
+    "06:00:09  Sentinel: agent-20 likely infected by agent-47  (28 messages)",
+    "06:00:12  Sentinel: recommend_quarantine agent-47, agent-20  (human approval needed)"
   ]
 }
