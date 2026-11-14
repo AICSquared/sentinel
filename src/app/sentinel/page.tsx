@@ -25,7 +25,7 @@ export default function SentinelPage() {
         <p className="flex items-center gap-2 text-sm text-ink-3">
           Explorer <DemoBadge on={playback} />
         </p>
-        <h1 className="max-w-4xl text-[clamp(2.25rem,4.6vw,3.75rem)] leading-[1.02] font-light tracking-[-0.035em] text-ink">
+        <h1 className="max-w-4xl text-[clamp(2.25rem,4.6vw,3.75rem)] leading-[1.02] font-light tracking-[-0.03em] text-ink">
           Watch the team, pick an agent, decide.
         </h1>
       </header>

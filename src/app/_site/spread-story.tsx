@@ -81,12 +81,11 @@ export function SpreadStory({ story }: { story: Story }) {
     <section ref={ref} aria-labelledby="spread-h" className="relative" style={{ height: `${Math.max(300, (last - from + 1) * 14)}vh` }}>
       <div className="sticky top-0 flex min-h-svh flex-col justify-center gap-6 px-4 py-20 sm:px-8 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-center lg:gap-10 lg:px-16">
         <div className="max-w-md" aria-live="polite">
-          <p className="font-mono text-[13px] text-crit-tag tabular-nums">{t.time} UTC</p>
-          <h2 id="spread-h" className="mt-4 text-[clamp(2.25rem,4.6vw,3.75rem)] leading-[1.02] font-light tracking-[-0.035em] text-ink">
+          <h2 id="spread-h" className="text-[clamp(2.25rem,4.6vw,3.75rem)] leading-[1.02] font-light tracking-[-0.03em] text-ink">
             {copy.title}
           </h2>
           <p className="mt-6 text-[17px] leading-relaxed text-ink-2">{copy.body}</p>
-          <p className="mt-6 text-sm text-ink-3">Scroll to move through the recorded run, second {i + 1} of {story.ticks.length}.</p>
+          <p className="mt-6 text-sm text-ink-3">{t.time} UTC, second {i + 1} of {story.ticks.length} of the recorded run. Scroll to move through it.</p>
         </div>
 
         <svg viewBox={`0 0 ${W} ${H}`} className="h-auto max-h-[62svh] w-full overflow-visible lg:max-h-[78svh]" role="img"

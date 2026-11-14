@@ -28,7 +28,7 @@ const TIER_TEXT: Record<string, string> = {
   recommend_terminate: "Recommend terminate. A person decides.",
 };
 
-const display = "font-light tracking-[-0.04em] text-ink";
+const display = "font-light tracking-[-0.03em] text-ink";
 const h2 = `${display} text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.08]`;
 
 export default function HowItWorks() {

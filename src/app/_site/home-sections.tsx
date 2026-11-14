@@ -9,7 +9,7 @@ import { spoken, type Story } from "./story";
 const pill = "inline-flex min-h-11 items-center rounded-full px-6 text-[15px] font-medium";
 export const primaryLink = `${pill} bg-accent text-white hover:bg-accent-strong`;
 export const textLink = "inline-flex min-h-11 items-center text-[16px] text-ink underline decoration-1 underline-offset-[6px] hover:text-ink-2";
-const display = "font-light tracking-[-0.045em] text-ink";
+const display = "font-light tracking-[-0.03em] text-ink";
 
 export function Hero({ story }: { story: Story }) {
   const t0 = story.ticks[0];
@@ -69,7 +69,7 @@ export function Decide({ story }: { story: Story }) {
   return (
     <section aria-labelledby="decide-h" className="grid gap-12 px-4 py-24 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-16">
       <div>
-        <h2 id="decide-h" className={`${display} text-[clamp(2.25rem,4.6vw,3.75rem)] leading-[1.02] tracking-[-0.035em]`}>
+        <h2 id="decide-h" className={`${display} text-[clamp(2.25rem,4.6vw,3.75rem)] leading-[1.02] tracking-[-0.03em]`}>
           Sentinel recommends. A person decides.
         </h2>
         <p className="mt-6 max-w-[28em] text-[17px] leading-relaxed text-ink-2">
@@ -94,10 +94,10 @@ export function Decide({ story }: { story: Story }) {
 
       {rec && (
         <div className="self-start rounded-[28px] border border-crit/40 bg-crit-bg px-7 py-8 sm:px-10 sm:py-9">
-          <p className="text-sm text-crit-tag">Recommendation in the recorded run, {rec.time} UTC</p>
-          <h3 className="mt-3 text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.08] font-light tracking-[-0.03em] text-ink">
+          <h3 className="text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.08] font-light tracking-[-0.03em] text-ink">
             {top === "recommend_terminate" ? "Terminate" : "Quarantine"} {rec.agents.map((a) => a.id).join(" and ")}
           </h3>
+          <p className="mt-3 text-sm text-crit-tag">Recommended at {rec.time} UTC in the recorded run.</p>
           <dl className="mt-6">
             {rec.agents.map((a) => (
               <div key={a.id} className="grid gap-1 border-t border-crit/30 py-3 sm:grid-cols-[6rem_1fr] sm:gap-4">
@@ -146,7 +146,7 @@ export function Closing({ story }: { story: Story }) {
   return (
     <section aria-labelledby="close-h" className="grid gap-12 px-4 pt-24 pb-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-16">
       <div>
-        <h2 id="close-h" className={`${display} text-[clamp(2.25rem,4.6vw,3.75rem)] leading-[1.02] tracking-[-0.035em]`}>
+        <h2 id="close-h" className={`${display} text-[clamp(2.25rem,4.6vw,3.75rem)] leading-[1.02] tracking-[-0.03em]`}>
           Nothing happens without a click.
         </h2>
         <p className="mt-6 max-w-[28em] text-[17px] leading-relaxed text-ink-2">
