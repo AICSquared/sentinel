@@ -105,8 +105,14 @@ export type ScoreResponse = {
   recommended_action: RecommendedAction;
   // `prompt` (0-100, T1 #22) is present only when the row had prompt_risk. No new attack types:
   // when Prompt Guard drives the risk, attack_type is "prompt_injection".
-  components: { supervised: number; anomaly: number; fallback: boolean; prompt?: number };
+  components: Components;
 };
+
+/** The parts of the 0-100 risk, so a judge can see why. Same shape in /score and /agents. */
+export type Components = { supervised: number; anomaly: number; fallback: boolean; prompt?: number };
+
+/** One feature's push on the classifier for this row (XGBoost per-row contribution, TreeSHAP-equivalent). */
+export type FeatureContribution = { feature: string; contribution: number };
 
 // --- B2. GET /agents (fleet snapshot) --------------------------------------
 
@@ -130,6 +136,9 @@ export type FleetAgent = {
   systems_touched: string[]; // newest first, max 8
   first_flagged_ts: string | null; // ISO 8601 UTC
   related_agents: RelatedAgent[];
+  // Optional additions (#22, for #28 and #35). Absent in older snapshots and the demo timeline.
+  components?: Components; // this agent's latest score breakdown, from score()
+  top_features?: FeatureContribution[]; // largest |contribution| first, max 5; a MODEL_INPUTS name or "prompt_risk"
 };
 
 export type Edge = { from: string; to: string; messages: number };
@@ -164,7 +173,13 @@ export type Validation = {
   per_type?: { attack_type: AttackType; precision: number; recall: number; support: number }[];
   novel_attack?: { held_out: AttackType; flagged_pct: number };
   hand_check?: { run_seed: number; matches: boolean; note: string };
+  // Optional additions (#22, for #28): every number on screen says where its data came from.
+  // `source` covers the block named by the key; a missing key means "synthetic".
+  source?: Partial<Record<"runs" | "per_type" | "novel_attack" | "prompt_guard", DataSource>>;
+  prompt_guard?: { dataset: string; precision: number; recall: number; support: number }; // cross-dataset test (InjecAgent)
 };
+
+export type DataSource = "synthetic" | "real";
 
 // --- Human decision (approve / dismiss) ------------------------------------
 

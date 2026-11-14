@@ -124,6 +124,19 @@ OPTIONAL_ROW_COLUMNS: tuple[str, ...] = (PROMPT_RISK_COLUMN,)
 # `prompt` (0-100) ONLY when the row has prompt_risk. No new enum values: when
 # Prompt Guard drives the risk, attack_type is "prompt_injection".
 
+# --- Contract B2: GET /agents optional per-agent fields (#22, for #28 / #35) --
+# agents[].components: the same dict as B's components, from this agent's latest score().
+# agents[].top_features: [{"feature": name, "contribution": float}], largest |contribution|
+#   first, at most TOP_FEATURES_MAX; name is a MODEL_INPUTS column or PROMPT_RISK_COLUMN.
+# Both are optional: older snapshots and the demo timeline omit them.
+OPTIONAL_AGENT_FIELDS: tuple[str, ...] = ("components", "top_features")
+TOP_FEATURES_MAX = 5
+
+# --- _data/validation.json optional provenance (#22) ------------------------
+# source: {block: "synthetic" | "real"} for blocks runs / per_type / novel_attack /
+# prompt_guard (missing = "synthetic"); prompt_guard: {dataset, precision, recall, support}.
+DATA_SOURCES: tuple[str, ...] = ("synthetic", "real")
+
 # --- Windows and timing -----------------------------------------------------
 WINDOW_S = 60  # features.py sliding window
 TICK_S = 2  # overseer scores every agent this often

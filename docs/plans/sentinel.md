@@ -174,6 +174,8 @@ A superset of `src/app/sentinel/_data/live_sample.json`: every key already in th
 | `agents[].requests` | total events from this agent this run |
 | `agents[].systems_touched` | distinct `resource` and `to_agent` values this run, newest first, max 8 |
 | `agents[].first_flagged_ts` | first time this agent reached risk 75; null if never |
+| `agents[].components` | optional (#22): this agent's latest score breakdown, same shape as contract B's `components` |
+| `agents[].top_features` | optional (#22): `[{feature, contribution}]`, the classifier's per-row contributions (TreeSHAP-equivalent), largest first, max 5; powers the "why flagged" bars |
 | `edges` | agent-to-agent message counts over the last 5 minutes |
 | `events` | newest last, max 50, each `"HH:MM:SS  text"` |
 
