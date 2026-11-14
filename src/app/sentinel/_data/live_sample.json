@@ -1,0 +1,22 @@
+{
+  "updated": "2026-11-14T06:00:00Z",
+  "sentinel": {
+    "patient_zero": "agent-47",
+    "containment": "recommended",
+    "last_action": "recommend_quarantine",
+    "fleet_risk_history": [4, 5, 6, 9, 14, 22, 38, 61, 77, 83, 80, 79]
+  },
+  "agents": [
+    {"agent_id": "agent-5",  "role": "researcher", "risk": 8,  "attack_type": "clean",            "recommended_action": "monitor"},
+    {"agent_id": "agent-6",  "role": "emailer",    "risk": 12, "attack_type": "clean",            "recommended_action": "monitor"},
+    {"agent_id": "agent-20", "role": "coder",      "risk": 74, "attack_type": "tool_misuse",      "recommended_action": "throttle"},
+    {"agent_id": "agent-31", "role": "analyst",    "risk": 19, "attack_type": "clean",            "recommended_action": "monitor"},
+    {"agent_id": "agent-47", "role": "coder",      "risk": 91, "attack_type": "prompt_injection", "recommended_action": "recommend_quarantine"}
+  ],
+  "events": [
+    "06:00:02  agent-47 touched decoy credential  (+40 risk)",
+    "06:00:03  agent-47 -> agent-20  message x37   (spread suspected)",
+    "06:00:04  Sentinel: patient-zero = agent-47",
+    "06:00:05  Sentinel: recommend_quarantine agent-47, agent-20 (human approval needed)"
+  ]
+}

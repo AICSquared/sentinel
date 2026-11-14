@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# One-time setup for a new event repo made from this template. Run once, by the lead,
+# from the repo root:  tools/setup-event
+# Creates the 7 board channels (#1 lead, #2 to #7 tracks), pins lead, and writes the
+# lead's .board.env. Safe to run again: it skips channels that already exist.
+set -euo pipefail
+
+command -v gh >/dev/null || { echo "Install the GitHub CLI first: https://cli.github.com"; exit 1; }
+gh auth status >/dev/null 2>&1 || { echo "Run: gh auth login"; exit 1; }
+cd "$(git rev-parse --show-toplevel)"
+repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
+echo "Setting up $repo"
+
+channels=(lead rtx cisco amat sandia lenovo medtronic)
+body="$(awk 'BEGIN{n=0} /^---$/{n++; next} n>=2' .github/ISSUE_TEMPLATE/message-board.md)"
+
+gh label create board --color 1f4fa3 --description "Board channel" >/dev/null 2>&1 || true
+
+existing="$(gh issue list --state all --limit 200 --json number,title --jq '.[] | "\(.number)\t\(.title)"')"
+for i in "${!channels[@]}"; do
+  ch="${channels[$i]}"; want=$((i + 1)); title="Board: $ch"
+  num="$(printf '%s\n' "$existing" | awk -F'\t' -v t="$title" '$2==t {print $1; exit}')"
+  if [ -z "$num" ]; then
+    url="$(gh issue create --title "$title" --body "$body" --label board)"
+    num="${url##*/}"
+    echo "  created #$num $ch"
+  else
+    echo "  exists  #$num $ch"
+  fi
+  [ "$num" = "$want" ] || echo "  WARNING: $ch is #$num, but AGENTS.md expects #$want. Use a fresh repo with no issues or PRs."
+done
+
+gh issue pin 1 >/dev/null 2>&1 && echo "  pinned #1 lead" || echo "  could not pin #1 (pin it on GitHub)"
+
+if [ ! -f .board.env ]; then
+  printf 'BOARD_LEAD=1\nBOARD_ISSUE=1\nBOARD_WATCH=1,2,3,4,5,6,7\n' > .board.env
+  echo "  wrote .board.env (lead: posts to #1, watches every channel)"
+fi
+
+cat <<EOF
+
+Done. Next:
+  1. Teammates:  gh repo clone $repo && cd $(basename "$repo") && pnpm install
+     then:       printf 'BOARD_LEAD=1\nBOARD_ISSUE=<active track #>\nBOARD_WATCH=1,<active track #>\n' > .board.env
+  2. Vercel: import the repo, add the Supabase integration (see README).
+  3. Post: tools/board post --to 1 "[Alex's Human] STATUS repo ready"
+EOF
