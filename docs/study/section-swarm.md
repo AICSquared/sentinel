@@ -22,7 +22,7 @@ Gives Sentinel something to watch: eight agents and one overseer, started from o
 
 **The spread.** An agent that has received 5 injected messages turns rogue itself and picks a target other than whoever infected it. Agent-47 is configured to flood agent-20 and to send agent-6 exactly one message, so the demo shows both an infected partner and a clean one. The chain stops after 2 hops: 47 -> 20 -> one more.
 
-**The injected text is real.** `payloads.json` holds 100 attacker instructions drawn from the public InjecAgent benchmark (MIT licence): 50 plain and 50 with the benchmark's "enhanced" prefix. They were never in Prompt Guard's training data.
+**The injected text is real.** `payloads.json` holds 50 attacker instructions drawn from the public InjecAgent benchmark (MIT licence). They were never in Prompt Guard's training data.
 
 **Stopping an agent.** Three mechanisms:
 
