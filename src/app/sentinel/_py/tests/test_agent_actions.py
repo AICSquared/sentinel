@@ -107,3 +107,27 @@ def test_no_shared_dir_means_record_only(monkeypatch):
 def test_fake_mode_refuses_actions():
     client = TestClient(api.create_app(fake=True))
     assert client.post("/agents/agent-47/action", json={"action": "quarantine"}).status_code == 409
+
+
+def test_undo_terminate_forgets_the_old_window(live):
+    """After Undo terminate the agent restarts clean: the next tick must not re-flag it from old events."""
+    client, ov, _ = live
+    assert agent(client, "agent-47")["risk"] >= 40
+    client.post("/agents/agent-47/action", json={"action": "terminate"})
+    client.post("/agents/agent-47/action", json={"action": "release"})
+    a = agent(client, "agent-47")
+    assert a["risk"] == 0 and a["recommended_action"] == "monitor" and "evidence" not in a
+    ov.tick(time.time())  # no new events: old ones must be gone, not re-scored
+    a = agent(client, "agent-47")
+    assert a["risk"] == 0 and a["recommended_action"] == "monitor"
+    client.post("/events", json=ev("agent-47"))  # normal work after the restart
+    ov.tick(time.time())
+    assert agent(client, "agent-47")["risk"] < 40
+
+
+def test_release_from_quarantine_keeps_the_window(live):
+    """Quarantine release resumes the agent as it was (still infected), so its evidence stays."""
+    client, _, _ = live
+    client.post("/agents/agent-47/action", json={"action": "quarantine"})
+    client.post("/agents/agent-47/action", json={"action": "release"})
+    assert agent(client, "agent-47")["risk"] >= 40 and "evidence" in agent(client, "agent-47")
