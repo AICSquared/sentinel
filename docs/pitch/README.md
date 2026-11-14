@@ -7,7 +7,7 @@
 | [`sentinel-deck.pdf`](sentinel-deck.pdf) | Viewing or sharing; opens anywhere |
 | [`sentinel-deck.pptx`](sentinel-deck.pptx) | Editing in PowerPoint, Keynote or Google Slides |
 
-The live, editable version is in Gamma: https://gamma.app/docs/2vyzvt4dq8ds67a (any teammate with the link can edit). These files are exports of it; re-export after changes there.
+The live, editable version is in Gamma: https://gamma.app/docs/SENTINEL-2vyzvt4dq8ds67a (any teammate with the link can edit). These files are exports of it; re-export after changes there.
 
 ## Slides
 
