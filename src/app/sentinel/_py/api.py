@@ -503,8 +503,11 @@ class Overseer:
             run.first_flagged = now
             if self.patient_zero is None:
                 self.patient_zero = aid
-                in_window = [t for t in run.event_ts if t >= now - WINDOW_S]
-                self.origin_ts = min(in_window) if in_window else now
+                # Time of origin = first event since the last tick that scored this agent as normal, so
+                # benign events earlier in the 60 s window don't push it back (within one tick of the truth).
+                window = [t for t in run.event_ts if t >= now - WINDOW_S]
+                since_normal = [t for t in window if t >= run.last_normal]
+                self.origin_ts = min(since_normal or window or [now])
                 self._log(now, f"Sentinel: patient-zero = {aid}")
         if SEVERITY[action] >= 1 and SEVERITY[action] > SEVERITY[run.last_action]:
             suffix = "(human approval needed)" if SEVERITY[action] >= 2 else f"(risk {risk})"

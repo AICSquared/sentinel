@@ -213,6 +213,32 @@ def test_quiet_agent_keeps_its_last_state(live):
     assert [a["agent_id"] for a in agents] == ["agent-47"] and agents[0]["risk"] >= 75
 
 
+def test_origin_is_first_bad_action_not_first_event_in_window(live, monkeypatch):
+    _, overseer = live
+    t0 = 1_800_000_000.0
+    clock = [t0]
+    monkeypatch.setattr(api.time, "time", lambda: clock[0])
+
+    def send(agent_id="agent-47", kind="tool_call", **kw):
+        overseer.ingest(api.Event(**event(agent_id, kind, **kw)))
+
+    for _ in range(10):  # benign work at t0
+        send(tool="docs.read", resource="repo:docs")
+    overseer.tick(clock[0])  # scores normal
+    clock[0] = t0 + 20
+    overseer.tick(clock[0])  # still normal; last normal tick is t0 + 20
+    clock[0] = t0 + 25  # the attack begins
+    send(kind="resource", resource="decoy:aws-key")
+    for i in range(30):
+        send(kind="message", to_agent=f"agent-{20 + i % 6}")
+    clock[0] = t0 + 27
+    overseer.tick(clock[0])
+
+    s = overseer.snapshot.sentinel
+    assert s.patient_zero == "agent-47"
+    assert s.origin_ts == api.iso(t0 + 25)  # the first-event-in-window rule would say t0, 25 s too early
+
+
 def test_agents_fast_with_eight_agents(live):
     client, overseer = live
     for n in range(1, 9):
