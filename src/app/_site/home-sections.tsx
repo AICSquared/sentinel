@@ -120,10 +120,16 @@ export function Decide({ story }: { story: Story }) {
   );
 }
 
+// Opening and closing eases the panel's height (200 ms, strong ease-out) instead of snapping: the documented
+// measured-height accordion exception. CSS only, via `::details-content` and `interpolate-size`; a browser
+// without them (older Safari/Firefox) opens instantly, as it did before. Reduced motion: no transition.
+const PANEL_MOTION =
+  "[interpolate-size:allow-keywords] [&::details-content]:h-0 [&::details-content]:overflow-clip [&::details-content]:transition-[height,content-visibility] [&::details-content]:duration-200 [&::details-content]:ease-[cubic-bezier(0.23,1,0.32,1)] [&::details-content]:[transition-behavior:allow-discrete] open:[&::details-content]:h-auto motion-reduce:[&::details-content]:transition-none";
+
 /** An expandable panel: native details/summary, so it works with keyboard and without script. */
 export function Panel({ title, children, open }: { title: string; children: ReactNode; open?: boolean }) {
   return (
-    <details open={open} className="group rounded-[18px] border border-line bg-surface">
+    <details open={open} className={`group rounded-[18px] border border-line bg-surface ${PANEL_MOTION}`}>
       <summary className="flex min-h-[60px] cursor-pointer list-none items-center justify-between gap-4 px-6 text-[16px] text-ink [&::-webkit-details-marker]:hidden">
         {title}
         <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-full border border-ink text-[18px] leading-none font-light">

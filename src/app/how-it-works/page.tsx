@@ -31,6 +31,14 @@ const TIER_TEXT: Record<string, string> = {
 const display = "font-light tracking-[-0.03em] text-ink";
 const h2 = `${display} text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.08]`;
 
+// One entrance for the page, seen once (Emil's choreograph rules): the title leads and the four steps follow
+// as a wave whose gaps shrink (not a metronome); everything else is simply there. Pure CSS (`starting:`), so it
+// plays on first paint without script, and a 300 ms strong ease-out keeps it well under the point where a
+// reader waits. Reduced motion keeps the fade and drops the 8 px rise.
+const ENTER =
+  "transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
+const STEP_DELAY_MS = [60, 110, 150, 180];
+
 export default function HowItWorks() {
   const story = buildStory();
   const steps = [
@@ -44,13 +52,14 @@ export default function HowItWorks() {
   ];
   return (
     <main className="px-4 pt-10 pb-20 sm:px-8 lg:px-16">
-      <h1 className={`${display} max-w-4xl text-[clamp(2.5rem,5.6vw,4.5rem)] leading-[1]`}>From {story.agentCount === 8 ? "eight" : story.agentCount} agents to one decision.</h1>
+      <h1 className={`${display} ${ENTER} max-w-4xl text-[clamp(2.5rem,5.6vw,4.5rem)] leading-[1]`}>From {story.agentCount === 8 ? "eight" : story.agentCount} agents to one decision.</h1>
 
       <ol className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="How a decision is made">
         {steps.map((s, i) => (
           <li
             key={s.title}
-            className={`relative rounded-[22px] border px-6 py-6 ${s.strong ? "border-crit bg-crit text-ground" : "border-ink-3/60 text-ink"}`}
+            style={{ transitionDelay: `${STEP_DELAY_MS[i] ?? 180}ms` }}
+            className={`${ENTER} relative rounded-[22px] border px-6 py-6 ${s.strong ? "border-crit bg-crit text-ground" : "border-ink-3/60 text-ink"}`}
           >
             <h2 className="text-[20px] font-normal">{s.title}</h2>
             <p className={`mt-2 text-[15px] leading-relaxed ${s.strong ? "text-ground" : "text-ink-2"}`}>{s.body}</p>
