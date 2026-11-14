@@ -1,10 +1,15 @@
 "use client";
 
 // Site navigation on every page: the Sentinel mark, Overview, How it works, and the explorer.
-// Presenter shortcut kept from the template: press h to go home (not while typing).
+// Presenter shortcuts from the template, for live demos (ignored while typing in a field):
+// [ and ] go to the previous and next ready track, h goes home.
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { tracks } from "@/lib/tracks";
+
+// The tracks the shortcuts walk through: the ready ones, or all of them until one is ready.
+const SHOWN = tracks.some((t) => t.ready) ? tracks.filter((t) => t.ready) : tracks;
 
 const LINKS = [
   { href: "/", label: "Overview" },
@@ -29,11 +34,14 @@ export function PresenterBar() {
     function onKey(e: KeyboardEvent) {
       const el = e.target as HTMLElement | null;
       if (e.metaKey || e.ctrlKey || e.altKey || el?.closest("input, textarea, select, [contenteditable]")) return;
+      const i = SHOWN.findIndex((t) => t.slug === pathname.split("/")[1]);
       if (e.key === "h") router.push("/");
+      if (e.key === "]") router.push(`/${SHOWN[(i + 1) % SHOWN.length].slug}`);
+      if (e.key === "[") router.push(`/${SHOWN[(i - 1 + SHOWN.length) % SHOWN.length].slug}`);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [router]);
+  }, [pathname, router]);
 
   if (pathname.startsWith("/login")) return null;
   const inExplorer = pathname.startsWith("/sentinel");
