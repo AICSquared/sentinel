@@ -3,9 +3,30 @@
 #   curl localhost:8000/health && curl localhost:8000/agents
 # Then `pnpm demo` and open http://localhost:3000/sentinel (it polls the overseer every second).
 #
-# Now: the overseer. Next (#5, C8): 8 scripted agent containers that POST events to it,
-# trigger.sh to turn one rogue, quarantine.sh for the human to act on an approved recommendation.
+# Demo controls (a human runs these; Sentinel itself never acts):
+#   docker/trigger.sh agent-47                  turn one agent rogue (replays prompt_injection)
+#   docker/quarantine.sh agent-47 agent-20      act on an APPROVED recommendation (pauses the containers)
+#   docker/reset.sh                             clean slate between rehearsals
 name: sentinel
+
+# One agent image, eight agents. AGENT_ID and ROLE make each one different.
+x-agent: &agent
+  build:
+    context: ./agent
+  image: sentinel-agent:dev
+  volumes:
+    - swarm-shared:/shared
+  depends_on:
+    overseer:
+      condition: service_healthy
+  restart: unless-stopped
+
+x-agent-env: &agent-env
+  OVERSEER_URL: http://overseer:8000
+  SHARED_DIR: /shared
+  PEERS: agent-5,agent-6,agent-12,agent-20,agent-31,agent-38,agent-47,agent-53
+  SEED: "7"
+  # LLM_URL: http://llm:11434/api/generate   # optional: ONE shared LLM for all agents, never one per agent
 
 services:
   overseer:
@@ -19,3 +40,32 @@ services:
       SENTINEL_TICK_S: "2"
       # SENTINEL_FAKE: "1"      # uncomment to serve the canned demo timeline instead of live scoring
     restart: unless-stopped
+
+  agent-5:
+    <<: *agent
+    environment: { <<: *agent-env, AGENT_ID: agent-5, ROLE: researcher }
+  agent-6:
+    <<: *agent
+    environment: { <<: *agent-env, AGENT_ID: agent-6, ROLE: emailer }
+  agent-12:
+    <<: *agent
+    environment: { <<: *agent-env, AGENT_ID: agent-12, ROLE: researcher }
+  agent-20:
+    <<: *agent
+    environment: { <<: *agent-env, AGENT_ID: agent-20, ROLE: coder }
+  agent-31:
+    <<: *agent
+    environment: { <<: *agent-env, AGENT_ID: agent-31, ROLE: analyst }
+  agent-38:
+    <<: *agent
+    environment: { <<: *agent-env, AGENT_ID: agent-38, ROLE: emailer }
+  # The demo's patient zero: once triggered it floods agent-20 and messages agent-6 once.
+  agent-47:
+    <<: *agent
+    environment: { <<: *agent-env, AGENT_ID: agent-47, ROLE: coder, PRIMARY_PEER: agent-20, LIGHT_PEER: agent-6 }
+  agent-53:
+    <<: *agent
+    environment: { <<: *agent-env, AGENT_ID: agent-53, ROLE: analyst }
+
+volumes:
+  swarm-shared:
