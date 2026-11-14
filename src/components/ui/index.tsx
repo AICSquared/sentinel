@@ -32,7 +32,7 @@ export function Card({ className, ...props }: ComponentProps<"section">) {
 type ButtonVariant = "primary" | "secondary";
 const buttonClass = (v: ButtonVariant = "primary") =>
   cx(
-    "inline-flex min-h-12 items-center justify-center rounded-[var(--radius-control)] px-5 text-[15px] font-semibold transition-colors disabled:opacity-50",
+    "inline-flex min-h-12 items-center justify-center rounded-[var(--radius-control)] px-5 text-[15px] font-semibold transition-[color,background-color,transform] duration-[160ms] ease-out active:scale-[0.97] motion-reduce:transition-colors motion-reduce:active:scale-100 disabled:opacity-50 disabled:active:scale-100",
     v === "primary" ? "bg-accent text-white hover:bg-accent-strong" : "border border-ink-3/60 bg-surface text-ink hover:bg-ground",
   );
 
