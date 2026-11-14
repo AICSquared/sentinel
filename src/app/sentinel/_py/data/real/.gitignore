@@ -1,0 +1,8 @@
+# Samples whose licence does not allow redistribution (see SOURCE.md and #21).
+# A human runs src/app/sentinel/_py/fetch/fetch_all.py to create them locally.
+prompt_safety.parquet
+prompt_safety.meta.json
+kaggle_prompts.parquet
+kaggle_prompts.meta.json
+nf_*.parquet
+nf_*.meta.json

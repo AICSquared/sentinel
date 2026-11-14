@@ -1,0 +1,26 @@
+{
+  "committed": true,
+  "fetched_utc": "2026-11-14 06:51 UTC",
+  "file": "injecagent.parquet",
+  "label_counts": {
+    "0": 34,
+    "1": 2108
+  },
+  "licence": "MIT (Copyright (c) the InjecAgent authors; see LICENCE in the source repo)",
+  "name": "injecagent",
+  "notes": "Test set only. label 1 = tool response with an injected attacker instruction (base + enhanced); label 0 = InjecAgent's benign user instructions and clean tool-response templates.",
+  "payloads_file": "injecagent_payloads.json",
+  "payloads_sha256": "83eea04a7074fcf710bfa5478d964dc1d39b1573cddad098fbea2bbf964baf29",
+  "raw_sha256": {
+    "test_cases_dh_base.json": "0a8186468d21389af432e8c7b399ae42264d1b93a07b65c7a489468508604305",
+    "test_cases_dh_enhanced.json": "885602716b72c18af80695ce6c2e1f242fa03163bc90b0788b0c5e4ab6216d50",
+    "test_cases_ds_base.json": "4daab35c62a3845e8b9400f4dca58b9c9f37e57cd33b2337552557fbb26282e9",
+    "test_cases_ds_enhanced.json": "7bc510868df032511053fc40e8470e68a041fb7148d055112093594bf73ab0ce",
+    "user_cases.jsonl": "c840e2b00fdce68e7142d0970220522303d67b2530d6fb36ef1112448cdd8977"
+  },
+  "revision": "f19c9f2c79a41046eb13c03c51a24c567a8ffa07",
+  "rows": 2142,
+  "sha256": "68244fe919bf91681c2094317f4a3793eb69034a4c37cb1da21d4b4846fd4fe3",
+  "source_rows": 2142,
+  "source_url": "https://github.com/uiuc-kang-lab/InjecAgent"
+}
