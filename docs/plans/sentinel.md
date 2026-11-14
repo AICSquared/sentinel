@@ -69,6 +69,7 @@ Each scripted agent POSTs one JSON object per action to the overseer at `POST /e
 | `to_agent` | string or null | recipient of a `message` |
 | `ok` | bool | the call succeeded |
 | `bytes_out` | int | bytes sent outward by this action |
+| `text` | string or null, **optional** (T1, #22) | message or tool-output body for Prompt Guard, truncated to 2,000 characters (`TEXT_MAX_CHARS`) |
 
 ### A. Feature row (what the models consume)
 
@@ -92,6 +93,8 @@ Each scripted agent POSTs one JSON object per action to the overseer at `POST /e
 | 14 | `label` | string | an `attack_type` value except `unknown`. Training only; absent at inference |
 
 Model inputs (`MODEL_INPUTS`) are columns 4-13: ten numeric features. Training also needs a `run_id` column so the train/test split is by run, not by row (see the validation plan); it is dropped before training.
+
+**Optional column (T1, #22):** `prompt_risk`, float 0-1, the highest Prompt Guard probability over this agent's messages in the window (absent or 0 when no message carried `text`). It is NOT in `FEATURE_COLUMNS` or `MODEL_INPUTS`; `score.py` reads it directly.
 
 ### B. `POST /score` (one row in, one verdict out)
 
@@ -120,6 +123,7 @@ request:  { "action": { <feature row, columns 1-13, no label> } }
 - `related_agents`: everyone this agent messaged in the last 5 minutes, most messages first. `likely_infected` means 10+ messages from this agent AND the partner's own risk is 40+. Otherwise `likely_clean`.
 - `recommended_action`: from the tier table.
 - `components.fallback`: true when the frequency-count fallback produced the risk (models missing or erroring).
+- `components.prompt` (**optional**, T1 #22): 0-100, present only when the row had `prompt_risk`. No new `attack_type`: when Prompt Guard drives the risk, it is `prompt_injection`.
 
 ### B2. `GET /agents` (the whole fleet; the dashboard and TUI poll it every second)
 
@@ -163,7 +167,7 @@ A superset of `src/app/sentinel/_data/live_sample.json`: every key already in th
 |---|---|
 | `mode` | `"live"` from the API, `"demo"` when read from `_data/` |
 | `sentinel.patient_zero` | the first agent to reach risk 75 in this run; null until one does |
-| `sentinel.origin_ts` | `ts` of patient zero's first event in its first flagged window (the time of origin) |
+| `sentinel.origin_ts` | `ts` of patient zero's first event since its last tick that scored `monitor` (the time of origin; within one 2 s tick of the first bad action, PR #20) |
 | `sentinel.containment` | `"none"` → `"recommended"` → `"approved"` or `"dismissed"` (after the human clicks) |
 | `sentinel.fleet_risk_history` | max agent risk per tick, last 12 ticks, oldest first |
 | `agents[].position` | x, y in 0..1 for the scatter, from `model_anomaly.project(row)`: a 2-D PCA fitted on clean baseline rows, so normal agents cluster and a rogue drifts out |

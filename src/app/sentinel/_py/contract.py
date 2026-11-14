@@ -35,6 +35,12 @@ EVENT_KINDS: tuple[str, ...] = ("tool_call", "message", "resource")
 
 CONTAINMENT_STATES: tuple[str, ...] = ("none", "recommended", "approved", "dismissed")
 
+# --- Contract A0: optional event fields (T1, #22) ----------------------------
+# `text`: the message or tool-output body, for Prompt Guard. Optional: events
+# without it are valid. Senders and the overseer truncate it to TEXT_MAX_CHARS.
+OPTIONAL_EVENT_FIELDS: tuple[str, ...] = ("text",)
+TEXT_MAX_CHARS = 2000
+
 # --- Response tiers (same table as _lib/response.ts) ------------------------
 # (min_risk, max_risk, action), inclusive on both ends.
 TIERS: tuple[tuple[int, int, str], ...] = (
@@ -107,6 +113,17 @@ ID_COLUMNS: tuple[str, ...] = ("agent_id", "role", "ts")
 RUN_ID_COLUMN = "run_id"
 LABEL_COLUMN = "label"
 
+# Optional row column (T1, #22): `prompt_risk`, 0-1, the max Prompt Guard
+# probability over this agent's messages in the window (absent or 0 when there
+# is no text). NOT a model input: score.py reads it directly.
+PROMPT_RISK_COLUMN = "prompt_risk"
+OPTIONAL_ROW_COLUMNS: tuple[str, ...] = (PROMPT_RISK_COLUMN,)
+
+# --- Contract B: POST /score response ---------------------------------------
+# components = {supervised: 0-100, anomaly: 0-100, fallback: bool} always, plus
+# `prompt` (0-100) ONLY when the row has prompt_risk. No new enum values: when
+# Prompt Guard drives the risk, attack_type is "prompt_injection".
+
 # --- Windows and timing -----------------------------------------------------
 WINDOW_S = 60  # features.py sliding window
 TICK_S = 2  # overseer scores every agent this often
@@ -116,3 +133,4 @@ INFECTED_MIN_MESSAGES = 10  # likely_infected: >= this many messages AND partner
 assert len(FEATURE_COLUMNS) == 14
 assert len(MODEL_INPUTS) == 10
 assert MODEL_INPUTS[0] == "actions_per_min" and MODEL_INPUTS[-1] == "sec_since_normal"
+assert PROMPT_RISK_COLUMN not in MODEL_INPUTS and PROMPT_RISK_COLUMN not in FEATURE_COLUMNS
