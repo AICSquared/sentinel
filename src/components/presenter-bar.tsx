@@ -66,7 +66,7 @@ export function PresenterBar() {
         <Link
           href="/sentinel"
           aria-current={inExplorer ? "page" : undefined}
-          className="inline-flex min-h-11 items-center rounded-full bg-accent px-5 text-[15px] font-medium text-white hover:bg-accent-strong aria-[current=page]:bg-accent-strong"
+          className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] bg-accent px-5 text-[15px] font-medium text-white hover:bg-accent-strong aria-[current=page]:bg-accent-strong"
         >
           Explorer
         </Link>

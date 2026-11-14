@@ -2,15 +2,20 @@
 // Nothing here is typed in by hand: if the recording is re-made, the pages follow it. No results numbers
 // (detection rates etc.) are shown anywhere until the validation runs exist.
 import timelineJson from "@/app/sentinel/_data/demo_timeline.json";
-import type { DemoTimeline, FleetAgent, FleetSnapshot, RecommendedAction, Role } from "@/app/sentinel/_lib/contract";
+import type { Containment, DemoTimeline, FleetAgent, FleetSnapshot, RecommendedAction, Role } from "@/app/sentinel/_lib/contract";
 
 export type StoryAgent = { id: string; role: Role; x: number; y: number; risk: number; action: RecommendedAction };
+export type StoryLink = { from: string; to: string; messages: number; infected: boolean };
 export type StoryTick = {
   time: string; // HH:MM:SS UTC
+  at: string; // full ISO timestamp, for the seconds between two ticks
+  containment: Containment; // none -> recommended -> approved | dismissed (the human's click)
   agents: StoryAgent[];
   patientZero: string | null;
   /** patient zero's partners at this tick: message count and verdict */
   related: { id: string; messages: number; infected: boolean }[];
+  /** every agent's partners at this tick: who it messaged, how often, and whether the partner counts as infected */
+  links: StoryLink[];
 };
 export type Flagged = { id: string; role: Role; risk: number; action: RecommendedAction; reason: string };
 
@@ -32,9 +37,14 @@ function toTick(s: FleetSnapshot): StoryTick {
   const pz = s.agents.find((a) => a.agent_id === s.sentinel.patient_zero);
   return {
     time: hms(s.updated) ?? "",
+    at: s.updated,
+    containment: s.sentinel.containment,
     patientZero: s.sentinel.patient_zero,
     agents: s.agents.map((a) => ({ id: a.agent_id, role: a.role, x: a.position.x, y: a.position.y, risk: a.risk, action: a.recommended_action })),
     related: (pz?.related_agents ?? []).map((r) => ({ id: r.agent_id, messages: r.messages, infected: r.verdict === "likely_infected" })),
+    links: s.agents.flatMap((a) =>
+      a.related_agents.map((r) => ({ from: a.agent_id, to: r.agent_id, messages: r.messages, infected: r.verdict === "likely_infected" })),
+    ),
   };
 }
 
