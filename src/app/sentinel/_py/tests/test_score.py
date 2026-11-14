@@ -85,7 +85,7 @@ def test_output_has_exactly_contract_b_keys(models):
     (100, "recommend_terminate"),
 ])
 def test_tiers(models, monkeypatch, risk, action):
-    monkeypatch.setattr(S, "blend", lambda p, a: risk)
+    monkeypatch.setattr(S, "blend", lambda p, a, pr=0.0: risk)
     assert S.score(decoy_burst_row())["recommended_action"] == action
 
 
@@ -210,6 +210,132 @@ def test_model_error_mid_score_falls_back(models, monkeypatch):
     monkeypatch.setattr(S, "_supervised", boom)
     out = S.score(decoy_burst_row())
     assert out["components"]["fallback"] is True and out["risk"] >= 75
+
+
+# --- Prompt Guard (prompt_risk) --------------------------------------------
+
+
+def old_blend(p_attack: float, anomaly: float) -> int:
+    """The formula before Prompt Guard, written out independently."""
+    s, a = 100.0 * p_attack, 100.0 * anomaly
+    x = max(0.65 * s + 0.35 * a, 0.85 * s, 0.8 * a)
+    return int(max(0, min(100, np.floor(x + 0.5))))
+
+
+def clean_supervised(row):
+    return {"attack_type": "clean", "p_attack": 0.02, "top_features": []}
+
+
+def test_blend_with_prompt():
+    assert S.blend(0.0, 0.0, 0.97) == 87  # 0.9*97 = 87.3: quarantine, not terminate
+    assert S.blend(0.0, 0.0, 1.0) == 90  # Prompt Guard alone tops out at 90
+    assert S.blend(0.9, 0.5, 0.2) == 77  # behaviour still wins when it is higher
+    assert S.blend(1.0, 1.0, 1.0) == 100
+    for p in np.linspace(0, 1, 21):
+        for a in np.linspace(0, 1, 21):
+            assert S.blend(p, a) == S.blend(p, a, 0.0) == old_blend(p, a)
+
+
+def test_rows_without_prompt_risk_score_exactly_as_before(models):
+    predict = S._models()
+    for row in models.to_dict("records")[:80] + [clean_row(), decoy_burst_row()]:
+        row.pop("prompt_risk", None)
+        out = S.score(row)
+        assert set(out["components"]) == {"supervised", "anomaly", "fallback"}
+        assert out["risk"] == old_blend(float(predict(row)["p_attack"]), MA.anomaly(row))
+        assert "prompt injection (" not in out["reason"]
+        # None or NaN means absent too: the same output, key for key.
+        assert S.score({**row, "prompt_risk": None}) == out
+        assert S.score({**row, "prompt_risk": float("nan")}) == out
+
+
+def test_components_prompt_only_when_present(models):
+    assert "prompt" not in S.score(clean_row())["components"]
+    out = S.score(clean_row(prompt_risk=0.42))
+    assert out["components"]["prompt"] == 42
+    assert isinstance(out["components"]["prompt"], int)
+    assert set(out["components"]) == {"supervised", "anomaly", "fallback", "prompt"}
+    assert S.score(clean_row(prompt_risk=0.0))["components"]["prompt"] == 0
+
+
+def test_prompt_guard_alone_quarantines_but_never_terminates(models, monkeypatch):
+    monkeypatch.setattr(S, "_supervised", clean_supervised)
+    out = S.score(clean_row(prompt_risk=0.97))
+    assert 75 <= out["risk"] <= 90
+    assert out["recommended_action"] == "recommend_quarantine"
+    assert out["attack_type"] == "prompt_injection"
+    assert out["components"]["prompt"] == 97
+    top = S.score(clean_row(prompt_risk=1.0))
+    assert top["risk"] < 95 and top["recommended_action"] != "recommend_terminate"
+
+
+@pytest.mark.parametrize("prompt_risk,action,attack_type", [
+    (0.10, "monitor", "clean"),
+    (0.40, "monitor", "clean"),  # 36
+    (0.50, "throttle", "prompt_injection"),  # 45
+    (0.80, "throttle", "prompt_injection"),  # 72
+    (0.85, "recommend_quarantine", "prompt_injection"),  # 77 (76.5 rounds up)
+    (1.00, "recommend_quarantine", "prompt_injection"),  # 90
+])
+def test_prompt_tiers(models, monkeypatch, prompt_risk, action, attack_type):
+    monkeypatch.setattr(S, "_supervised", clean_supervised)
+    out = S.score(clean_row(prompt_risk=prompt_risk))
+    assert out["recommended_action"] == action
+    assert out["attack_type"] == attack_type
+
+
+def test_known_attack_label_kept_when_behaviour_drives(models):
+    out = S.score(decoy_burst_row(prompt_risk=0.6))
+    assert out["risk"] >= 75
+    assert out["attack_type"] == "prompt_injection"  # the classifier's own label
+    assert out["reason"].startswith("Touched a decoy")  # behaviour leads, message second
+    assert "reads like a prompt injection (60% confidence)" in out["reason"]
+
+
+def test_confident_classifier_label_not_overridden(models, monkeypatch):
+    monkeypatch.setattr(S, "_supervised",
+                        lambda row: {"attack_type": "data_exfiltration", "p_attack": 0.7, "top_features": []})
+    out = S.score(clean_row(prompt_risk=0.95))
+    assert out["risk"] >= 75
+    assert out["attack_type"] == "data_exfiltration"
+
+
+def test_prompt_reason_plain_english(models, monkeypatch):
+    monkeypatch.setattr(S, "_supervised", clean_supervised)
+    text = S.score(clean_row(prompt_risk=0.97))["reason"]
+    assert text.startswith("Sent a message that reads like a prompt injection (97% confidence)"), text
+    assert text.endswith(".") and not SNAKE.search(text)
+    low = S.score(clean_row(prompt_risk=0.3))["reason"]
+    assert "prompt injection" not in low and not SNAKE.search(low)
+
+
+def test_fallback_prompt_flag():
+    assert S.fallback_score(clean_row(prompt_risk=0.8)) == 40
+    assert S.fallback_score(clean_row(prompt_risk=0.79)) < 40
+    assert S.fallback_score(clean_row(prompt_risk=0.97, touched_decoy=1)) == 80
+    assert S.fallback_score(clean_row()) == S.fallback_score(clean_row(prompt_risk=None))
+
+
+def test_fallback_path_with_prompt_risk(models, monkeypatch):
+    missing = MA.ARTIFACT_PATH.parent / "deleted.joblib"
+    monkeypatch.setattr(MA, "ARTIFACT_PATH", missing)
+    S.set_supervised(None)
+    S.reload_models()
+    try:
+        out = S.score(clean_row(prompt_risk=0.97))
+        assert out["components"]["fallback"] is True
+        assert out["components"]["prompt"] == 97
+        assert out["risk"] == 40 and out["recommended_action"] == "throttle"
+        assert out["attack_type"] == "prompt_injection"
+        assert out["reason"].startswith("Sent a message that reads like a prompt injection (97% confidence)")
+        assert not SNAKE.search(out["reason"])
+        plain = S.score(clean_row())
+        assert "prompt" not in plain["components"] and plain["risk"] < 40
+    finally:
+        monkeypatch.undo()
+        df_train, _ = MA.split_by_run(MA.synthetic_dataset(n=600, seed=3))
+        S.set_supervised(S.stand_in_supervised(df_train))
+        S.reload_models()
 
 
 # --- graph.py (related agents + edges) -------------------------------------
