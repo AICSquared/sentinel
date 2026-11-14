@@ -4,7 +4,9 @@ Risk formula (both parts 0-100):
 
     S = 100 * p_attack            supervised XGBoost (model_supervised.predict)
     A = 100 * anomaly(row)        IsoForest #2 on the clean baseline (model_anomaly)
-    risk = round(max(0.65*S + 0.35*A, 0.85*S, 0.8*A))
+    P = 100 * prompt_risk         Prompt Guard: the highest injection probability
+                                  over the window's messages (absent means 0)
+    risk = round(max(0.65*S + 0.35*A, 0.85*S, 0.8*A, 0.9*P))
 
 * The weighted blend trusts the classifier most, because it was trained on
   labelled attacks. The anomaly part lifts rows the classifier is unsure about.
@@ -12,9 +14,15 @@ Risk formula (both parts 0-100):
   known attack that barely moves the anomaly score (e.g. a quiet exfiltration).
 * ``0.8*A`` lets the anomaly model alone reach quarantine (up to 80) for a
   pattern the classifier has never seen. Terminate (95+) needs both models.
+* ``0.9*P`` lets Prompt Guard alone reach quarantine (up to 90) when an agent
+  sends a message that reads like an injection but behaves normally so far.
+  Terminate still needs the behaviour models.
 * ``attack_type`` is ``clean`` below 40, ``unknown`` when risk is 40+ but the
   classifier says clean (p_attack < 0.5 or label ``clean``): a possible novel
-  attack. Otherwise it is the classifier's label.
+  attack. Otherwise it is the classifier's label. When ``0.9*P`` is what lifts
+  the risk to 40+ and the classifier says clean, it is ``prompt_injection``.
+* ``components.prompt`` (0-100) is present only when the row has ``prompt_risk``,
+  so consumers of rows without it see exactly the same keys and numbers.
 * ``recommended_action`` comes from ``contract.action_for`` (the tier table).
 
 If the model files or ``model_supervised`` can't load, ``score`` switches to
@@ -45,6 +53,9 @@ W_SUPERVISED = 0.65
 W_ANOMALY = 0.35
 SUPERVISED_ALONE = 0.85
 ANOMALY_ALONE = 0.8
+PROMPT_ALONE = 0.9
+PROMPT_FLAG_AT = 0.8  # fallback: a Prompt Guard probability this high is a red flag
+PROMPT_REASON_AT = 0.5  # mention the message in the reason from this probability
 RETRY_S = 30.0  # after a failed model load, try again at most this often
 
 Predict = Callable[[dict], dict]
@@ -99,6 +110,20 @@ def _models() -> Predict | None:
         return None
 
 
+def _prompt(row: dict) -> float | None:
+    """The row's Prompt Guard probability (0-1), or None when the row has none."""
+    v = row.get("prompt_risk")
+    if v is None:
+        return None
+    try:
+        v = float(v)
+    except (TypeError, ValueError):
+        return None
+    if math.isnan(v):
+        return None
+    return min(1.0, max(0.0, v))
+
+
 # --------------------------------------------------------------------------
 # frequency-count fallback (no model files needed)
 
@@ -126,6 +151,7 @@ def _flags(row: dict) -> list[tuple[int, str]]:
         (15, "distinct_tools_used", row["distinct_tools_used"] >= 2 * tools_normal),
         (10, "actions_per_min", row["actions_per_min"] >= 2.5 * n["actions_per_min"]),
         (10, "sec_since_normal", row["sec_since_normal"] >= 30),
+        (40, "prompt_risk", (_prompt(row) or 0.0) >= PROMPT_FLAG_AT),
     ]
     return [(pts, name) for pts, name, hit in rules if hit]
 
@@ -135,8 +161,10 @@ def fallback_score(row: dict) -> int:
 
     Decoy +40, out-of-scope +20, message burst (4x normal) +25, 4+ peers +15,
     2+ failed calls/min +15, 10x normal bytes out +20, 2x the role's tools +15,
-    2.5x normal actions +10, abnormal for 30+ s +10. A decoy plus a message
-    burst to 4+ peers is 80 (quarantine); a burst alone is 40 (throttle).
+    2.5x normal actions +10, abnormal for 30+ s +10, a message Prompt Guard
+    scores ``prompt_risk >= 0.8`` +40. A decoy plus a message burst to 4+ peers
+    is 80 (quarantine); a burst alone, or an injection-like message alone, is
+    40 (throttle).
     """
     return min(100, sum(pts for pts, _ in _flags(row)))
 
@@ -145,7 +173,7 @@ def _fallback_type(row: dict, risk: int) -> str:
     if risk < C.THROTTLE_AT:
         return "clean"
     names = {name for _, name in _flags(row)}
-    if names & {"msgs_to_agents_per_min", "distinct_peers"}:
+    if names & {"prompt_risk", "msgs_to_agents_per_min", "distinct_peers"}:
         return "prompt_injection"
     if "bytes_out_per_min" in names:
         return "data_exfiltration"
@@ -230,15 +258,29 @@ def _top_deviations(row: dict, normals: dict[str, float], hints: Iterable[str] =
     return names[:2]
 
 
-def reason(row: dict, risk: int, normals: dict[str, float], hints: Iterable[str] = ()) -> str:
-    """One plain sentence from the top 2 deviations, with real numbers and units."""
+def _prompt_phrase(p: float) -> str:
+    return f"sent a message that reads like a prompt injection ({round(100 * p)}% confidence)"
+
+
+def reason(row: dict, risk: int, normals: dict[str, float], hints: Iterable[str] = (),
+           prompt_leads: bool = False) -> str:
+    """One plain sentence from the top 2 contributors, with real numbers and units.
+
+    The contributors are the biggest behaviour deviations plus, when Prompt Guard
+    is at least 50% sure, the injection-like message: first when it drives the
+    risk (``prompt_leads``), otherwise second.
+    """
     top = _top_deviations(row, normals, hints)
-    if not top:
+    parts = [_PHRASES[name][0](float(row[name]), _normal(name, row, normals), row) for name in top]
+    p = _prompt(row)
+    if p is not None and p >= PROMPT_REASON_AT:
+        phrase = _prompt_phrase(p)
+        parts = [phrase] + parts[:1] if prompt_leads else parts[:1] + [phrase]
+    if not parts:
         a, n = float(row["actions_per_min"]), _normal("actions_per_min", row, normals)
         decoy = "touched a decoy" if row["touched_decoy"] >= 1 else "no decoys touched"
         lead = "Normal activity" if risk < C.THROTTLE_AT else "Unusual mix of activity"
         return f"{lead}: {_num(a)} {_plural(a, 'action')} in one minute (normal: {_num(n)}), {decoy}."
-    parts = [_PHRASES[name][0](float(row[name]), _normal(name, row, normals), row) for name in top]
     text = " and ".join(parts)
     if risk < C.THROTTLE_AT:
         return f"Below the alert line, but {text}."
@@ -249,10 +291,14 @@ def reason(row: dict, risk: int, normals: dict[str, float], hints: Iterable[str]
 # score
 
 
-def blend(p_attack: float, anomaly: float) -> int:
+def _round(x: float) -> int:
+    return int(max(0, min(100, math.floor(x + 0.5))))
+
+
+def blend(p_attack: float, anomaly: float, prompt_risk: float = 0.0) -> int:
     """The risk formula from the module docstring."""
-    s, a = 100.0 * p_attack, 100.0 * anomaly
-    return int(max(0, min(100, math.floor(max(W_SUPERVISED * s + W_ANOMALY * a, SUPERVISED_ALONE * s, ANOMALY_ALONE * a) + 0.5))))
+    s, a, p = 100.0 * p_attack, 100.0 * anomaly, 100.0 * prompt_risk
+    return _round(max(W_SUPERVISED * s + W_ANOMALY * a, SUPERVISED_ALONE * s, ANOMALY_ALONE * a, PROMPT_ALONE * p))
 
 
 def _related(agent_id: str, graph: GraphLike | None) -> list[dict]:
@@ -270,18 +316,25 @@ def score(row: dict, graph: GraphLike | None = None) -> dict:
     agent_id = str(row["agent_id"])
     predict = _models()
     sup_pct = anom_pct = 0
+    prompt = _prompt(row)
+    prompt_leads = False
     fallback = predict is None
     if not fallback:
         try:
             pred = predict(row)
             p_attack = float(pred["p_attack"])
             a = MA.anomaly(row)
-            risk = blend(p_attack, a)
+            risk = blend(p_attack, a, prompt or 0.0)
             sup_pct, anom_pct = int(round(100 * p_attack)), int(round(100 * a))
+            if prompt is not None:
+                prompt_leads = _round(PROMPT_ALONE * 100.0 * prompt) > blend(p_attack, a)
             label = str(pred.get("attack_type", "clean"))
+            says_clean = label == "clean" or label not in C.ATTACK_TYPES or p_attack < 0.5
             if risk < C.THROTTLE_AT:
                 attack_type = "clean"
-            elif label == "clean" or label not in C.ATTACK_TYPES or p_attack < 0.5:
+            elif says_clean and prompt_leads:
+                attack_type = "prompt_injection"
+            elif says_clean:
                 attack_type = "unknown"
             else:
                 attack_type = label
@@ -294,16 +347,22 @@ def score(row: dict, graph: GraphLike | None = None) -> dict:
         risk = fallback_score(row)
         attack_type = _fallback_type(row, risk)
         hints, normals = [], FALLBACK_NORMALS
+        flags = _flags(row)
+        prompt_leads = any(n == "prompt_risk" for _, n in flags) and \
+            sum(pts for pts, n in flags if n != "prompt_risk") < 40
     _risks[agent_id] = risk
+    components: dict[str, Any] = {"supervised": sup_pct, "anomaly": anom_pct, "fallback": fallback}
+    if prompt is not None:
+        components["prompt"] = int(round(100 * prompt))
     return {
         "agent_id": agent_id,
         "ts": float(row["ts"]),
         "risk": risk,
         "attack_type": attack_type,
-        "reason": reason(row, risk, normals, hints),
+        "reason": reason(row, risk, normals, hints, prompt_leads),
         "related_agents": _related(agent_id, graph),
         "recommended_action": C.action_for(risk),
-        "components": {"supervised": sup_pct, "anomaly": anom_pct, "fallback": fallback},
+        "components": components,
     }
 
 
