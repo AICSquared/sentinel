@@ -347,10 +347,13 @@ def test_agents_carry_components_when_scored(live):
     assert body["agents"][0]["components"] == {"supervised": 0.0, "anomaly": 0.0, "fallback": True, "prompt": 91.0}
 
 
-def test_fake_agents_omit_components():
+def test_fake_agents_carry_what_the_recorded_timeline_carries():
+    # Fake mode serves _data/demo_timeline.json, now a recording of a real run: every agent was scored, so
+    # every agent has `components`, and `top_features` appear only on agents at the throttle tier or above.
     body = TestClient(api.create_app(fake=True)).get("/agents").json()
     assert_b2(body)
-    assert all("components" not in a for a in body["agents"])
+    assert all("components" in a for a in body["agents"])
+    assert all(a["risk"] >= api.EXPLAIN_FROM_RISK for a in body["agents"] if "top_features" in a)
 
 
 # ---------------------------------------------------------------- top_features (#39)
