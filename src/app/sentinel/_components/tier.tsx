@@ -19,8 +19,14 @@ export const tierMeta: Record<RecommendedAction, { label: string; severity: Seve
 /** An agent the human has to decide about (quarantine tier or above). */
 export const isFlagged = (a: Pick<Agent, "recommended_action">) => tierMeta[a.recommended_action].rank >= 2;
 
+// A change of tier is a short fade (200 ms, strong ease-out), not a snap: colour and the terminate ring (a box-shadow).
 export function TierDot({ action }: { action: RecommendedAction }) {
-  return <span aria-hidden className={`inline-block size-3.5 shrink-0 rounded-full ${tierMeta[action].dot}`} />;
+  return (
+    <span
+      aria-hidden
+      className={`inline-block size-3.5 shrink-0 rounded-full transition-[background-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${tierMeta[action].dot}`}
+    />
+  );
 }
 
 /** "06:00:12 UTC" from an ISO timestamp, without touching the viewer's time zone. */

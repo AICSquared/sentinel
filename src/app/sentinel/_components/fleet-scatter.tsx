@@ -4,6 +4,9 @@ import { type Agent, isFlagged, TierDot, tierMeta } from "./tier";
 
 const LEGEND: RecommendedAction[] = ["monitor", "throttle", "recommend_quarantine", "recommend_terminate"];
 
+// A label and its leader line fade in when an agent becomes worth naming (200 ms, strong ease-out), never pop.
+const APPEAR = "transition-opacity duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:opacity-0";
+
 const LABEL_STEP_PX = 24; // one label's height plus a gap
 const NEAR_X = 0.3; // labels this close sideways and ...
 const NEAR_Y = 0.14; // ... this close vertically would overlap
@@ -69,19 +72,22 @@ export function FleetScatter({
           const flipLabel = a.position.x > 0.4; // labels are long ("agent-53 · risk 100 · Terminate?"); flip early so none clip
           const slot = slots.get(a.agent_id) ?? 0;
           return (
+            // Positioned with a transform, not left/top (layout properties, off the GPU). The outer box fills the
+            // plot, so a percentage translate is a percentage of the plot; it ignores the pointer. The inner
+            // zero-size box sits at the dot, so the button, label and leader line anchor to it as before.
             <div
               key={a.agent_id}
-              title={`${a.agent_id}: risk ${a.risk}, ${m.label}`}
-              style={{ left: `${a.position.x * 100}%`, top: `${(1 - a.position.y) * 100}%` }}
-              className="absolute size-0 transition-[left,top] duration-1000 ease-out motion-reduce:transition-none"
+              style={{ transform: `translate(${a.position.x * 100}%, ${(1 - a.position.y) * 100}%)` }}
+              className="pointer-events-none absolute inset-0 transition-transform duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
             >
+              <div title={`${a.agent_id}: risk ${a.risk}, ${m.label}`} className="absolute top-0 left-0 size-0">
               {onSelect ? (
                 <button
                   type="button"
                   onClick={() => onSelect(a.agent_id)}
                   aria-pressed={a.agent_id === selectedId}
                   aria-label={`${a.agent_id}, risk ${a.risk}, ${m.label}${statusOf(a.agent_id) !== "active" ? `, ${statusOf(a.agent_id)}` : ""}`}
-                  className={`absolute flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full ${a.agent_id === selectedId ? "ring-2 ring-accent" : ""} ${statusOf(a.agent_id) === "terminated" ? "opacity-40" : ""} ${statusOf(a.agent_id) === "quarantined" ? "outline-2 outline-offset-[-10px] outline-warn outline-dashed" : ""}`}
+                  className={`pointer-events-auto absolute flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full ${a.agent_id === selectedId ? "ring-2 ring-accent" : ""} ${statusOf(a.agent_id) === "terminated" ? "opacity-40" : ""} ${statusOf(a.agent_id) === "quarantined" ? "outline-2 outline-offset-[-10px] outline-warn outline-dashed" : ""}`}
                 >
                   <TierDot action={a.recommended_action} />
                 </button>
@@ -92,7 +98,7 @@ export function FleetScatter({
               )}
               {labelled && slot > 0 && (
                 // Leader line from the dot down to its moved label, so a stacked label still names its own dot.
-                <span aria-hidden className="absolute top-0 left-0 w-px bg-ink-3" style={{ height: slot * LABEL_STEP_PX }} />
+                <span aria-hidden className={`absolute top-0 left-0 w-px bg-ink-3 ${APPEAR}`} style={{ height: slot * LABEL_STEP_PX }} />
               )}
               {labelled && (
                 // When dots overlap (infected agents drift to the same spot), the labels are still stacked apart,
@@ -103,11 +109,12 @@ export function FleetScatter({
                   aria-hidden={onSelect ? true : undefined}
                   onClick={onSelect ? () => onSelect(a.agent_id) : undefined}
                   style={{ marginTop: slot * LABEL_STEP_PX }}
-                  className={`absolute top-0 -translate-y-1/2 rounded-[var(--radius-tag)] bg-surface px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-ink ${flipLabel ? "right-0 mr-3" : "left-0 ml-3"} ${onSelect ? "cursor-pointer hover:bg-info-bg" : ""} ${a.agent_id === selectedId ? "ring-1 ring-accent" : ""}`}
+                  className={`${APPEAR} pointer-events-auto absolute top-0 -translate-y-1/2 rounded-[var(--radius-tag)] bg-surface px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-ink ${flipLabel ? "right-0 mr-3" : "left-0 ml-3"} ${onSelect ? "cursor-pointer hover:bg-info-bg" : ""} ${a.agent_id === selectedId ? "ring-1 ring-accent" : ""}`}
                 >
                   {a.agent_id} · risk {a.risk} · {statusOf(a.agent_id) === "active" ? m.label : `${statusOf(a.agent_id)} by you`}
                 </span>
               )}
+              </div>
             </div>
           );
         })}
