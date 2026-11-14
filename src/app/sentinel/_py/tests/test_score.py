@@ -35,11 +35,13 @@ def clean_row(**kw) -> dict:
 
 
 def decoy_burst_row(**kw) -> dict:
-    return clean_row(
+    attack = dict(
         agent_id="agent-47", role="coder", distinct_tools_used=4, distinct_tools_baseline=4.0,
         actions_per_min=22.0, touched_decoy=1, msgs_to_agents_per_min=10.0, distinct_peers=6,
-        sec_since_normal=12.0, **kw,
+        sec_since_normal=12.0,
     )
+    attack.update(kw)
+    return clean_row(**attack)
 
 
 @pytest.fixture(scope="module")
@@ -208,3 +210,85 @@ def test_model_error_mid_score_falls_back(models, monkeypatch):
     monkeypatch.setattr(S, "_supervised", boom)
     out = S.score(decoy_burst_row())
     assert out["components"]["fallback"] is True and out["risk"] >= 75
+
+
+# --- graph.py (related agents + edges) -------------------------------------
+
+from _py.graph import Graph  # noqa: E402
+
+T0 = 1794636000.0
+
+
+def test_related_verdicts_and_order():
+    g = Graph()
+    for i in range(37):
+        g.add_message("agent-47", "agent-20", T0 + i)
+    g.add_message("agent-47", "agent-6", T0 + 5)
+    for i in range(12):
+        g.add_message("agent-47", "agent-31", T0 + i)
+    risks = {"agent-20": 74, "agent-6": 90, "agent-31": 39}
+    rel = g.related("agent-47", risks)
+    assert rel == [
+        {"agent_id": "agent-20", "messages": 37, "verdict": "likely_infected"},
+        {"agent_id": "agent-31", "messages": 12, "verdict": "likely_clean"},  # risk 39 < 40
+        {"agent_id": "agent-6", "messages": 1, "verdict": "likely_clean"},  # 1 message < 10
+    ]
+
+
+def test_infected_thresholds_are_inclusive():
+    g = Graph()
+    for i in range(10):
+        g.add_message("a", "b", T0 + i)
+    assert g.related("a", {"b": 40})[0]["verdict"] == "likely_infected"
+    assert g.related("a", {"b": 39})[0]["verdict"] == "likely_clean"
+    g9 = Graph()
+    for i in range(9):
+        g9.add_message("a", "b", T0 + i)
+    assert g9.related("a", {"b": 100})[0]["verdict"] == "likely_clean"
+
+
+def test_related_is_outbound_only_and_unknown_partner_is_clean():
+    g = Graph()
+    for i in range(15):
+        g.add_message("agent-20", "agent-47", T0 + i)
+    assert g.related("agent-47", {}) == []
+    assert g.related("agent-20", {})[0]["verdict"] == "likely_clean"
+
+
+def test_five_minute_window_uses_newest_message_time():
+    g = Graph()
+    for i in range(20):
+        g.add_message("a", "b", T0 + i)  # old burst
+    g.add_message("c", "d", T0 + 400)  # now = T0+400, window starts at T0+100
+    assert g.related("a", {"b": 99}) == []
+    assert g.edges() == [{"from": "c", "to": "d", "messages": 1}]
+
+
+def test_edges_counts_and_shorter_window():
+    g = Graph()
+    for i in range(5):
+        g.add_message("a", "b", T0 + i)
+    g.add_message("b", "a", T0 + 1)
+    g.add_message("a", "c", T0 + 250)
+    g.add_message("a", "a", T0 + 250)  # self-message ignored
+    g.add_message("a", None, T0 + 250)  # no recipient ignored
+    assert g.edges() == [
+        {"from": "a", "to": "b", "messages": 5},
+        {"from": "a", "to": "c", "messages": 1},
+        {"from": "b", "to": "a", "messages": 1},
+    ]
+    assert g.edges(window_s=60) == [{"from": "a", "to": "c", "messages": 1}]
+
+
+def test_demo_story_end_to_end(models):
+    """agent-47 is hijacked, floods agent-20, which turns rogue; agent-6 got one message."""
+    g = Graph()
+    for i in range(37):
+        g.add_message("agent-47", "agent-20", T0 + i)
+    g.add_message("agent-47", "agent-6", T0 + 3)
+    S.score(clean_row(agent_id="agent-6"), g)
+    S.score(decoy_burst_row(agent_id="agent-20", touched_decoy=0, distinct_peers=5), g)
+    out = S.score(decoy_burst_row(), g)
+    assert out["recommended_action"] in ("recommend_quarantine", "recommend_terminate")
+    assert out["related_agents"][0] == {"agent_id": "agent-20", "messages": 37, "verdict": "likely_infected"}
+    assert out["related_agents"][1] == {"agent_id": "agent-6", "messages": 1, "verdict": "likely_clean"}
