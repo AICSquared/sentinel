@@ -37,10 +37,24 @@ behind_warning() {
   return 0
 }
 
+ensure_docker() {
+  docker info >/dev/null 2>&1 && return 0
+  local app=""
+  [[ -d /Applications/OrbStack.app ]] && app=OrbStack
+  [[ -z "$app" && -d /Applications/Docker.app ]] && app=Docker
+  [[ -z "$app" ]] && { say "Docker is not running and neither OrbStack nor Docker Desktop is installed."; exit 1; }
+  say "Docker is not running. Opening $app..."
+  open -a "$app"
+  for _ in $(seq 1 60); do docker info >/dev/null 2>&1 && { say "Docker is up."; return 0; }; sleep 1; done
+  say "Docker did not start within 60 s. Open $app by hand, then run tools/demo up again."
+  exit 1
+}
+
 up() {
   local build=0
   [[ "${1:-}" == "--build" ]] && build=1
   behind_warning
+  ensure_docker
 
   say "Starting the overseer and 8 agents (Docker)..."
   if (( build )); then "${COMPOSE[@]}" up --build -d >/dev/null; else "${COMPOSE[@]}" up -d >/dev/null; fi
@@ -73,8 +87,8 @@ status() {
 
 case "${1:-}" in
   up)      shift; up "$@" ;;
-  trigger) docker/trigger.sh "${2:-agent-47}" ;;
-  reset)   docker/reset.sh ;;
+  trigger) ensure_docker; docker/trigger.sh "${2:-agent-47}" ;;
+  reset)   ensure_docker; docker/reset.sh ;;
   status)  status ;;
   down)    stop_dashboard; "${COMPOSE[@]}" stop >/dev/null; say "Dashboard and swarm stopped." ;;
   *)       sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
