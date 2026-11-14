@@ -7,6 +7,7 @@ xgboost>=2.1
 pandas>=2.2,<3        # pandas 3.x + numpy 2.4 fails on import on Windows (Noah, #2)
 numpy>=1.26
 joblib>=1.4
+pyarrow>=15,<26        # data/real/*.parquet for prompt_guard.py; pyarrow 26 is blocked by Windows Smart App Control (Noah, #2)
 
 # API (api.py)
 fastapi>=0.115

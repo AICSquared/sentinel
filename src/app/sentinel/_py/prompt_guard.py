@@ -48,7 +48,10 @@ TRAIN_PATH = REAL_DIR / "prompt_safety.parquet"
 EXTRA_TRAIN_PATH = REAL_DIR / "kaggle_prompts.parquet"
 TEST_PATH = REAL_DIR / "injecagent.parquet"
 PAYLOADS_PATH = REAL_DIR / "injecagent_payloads.json"
-SWARM_PATH = HERE.parents[3] / "docker" / "agent" / "swarm.py"
+# Repo root when run from the repo (src/app/sentinel/_py); inside the overseer image the code sits at /app,
+# which has no such parents, so fall back to HERE (swarm.py is then simply absent and that check is skipped).
+REPO_ROOT = HERE.parents[3] if len(HERE.parents) > 3 else HERE
+SWARM_PATH = REPO_ROOT / "docker" / "agent" / "swarm.py"
 ARTIFACT_PATH = HERE / "artifacts" / "prompt_guard.joblib"
 REPORT_PATH = HERE / "artifacts" / "prompt_guard_report.json"
 
