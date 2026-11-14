@@ -94,10 +94,12 @@ export async function decide(input: { agents: unknown; decision: Decision; sourc
     detail: { recommended_action: a.recommended_action, reason: a.reason },
   }));
   const audit = await writeAudit(rows);
-  const verb = decision === "approved" ? "APPROVED quarantine of" : "DISMISSED the recommendation for";
+  // Name what was actually recommended for each agent (quarantine vs terminate), not a fixed word.
+  const what = agents.map((a) => `${ACTION_LABEL[a.recommended_action].toLowerCase()} ${a.agent_id} (risk ${a.risk}, ${plain(a.attack_type)})`).join(", ");
+  const verb = decision === "approved" ? "APPROVED" : "DISMISSED the recommendation to";
   // The audit row names the person; the Discord message doesn't, so no email leaves our database.
   const alert = await sendAlert(
-    `${user ? "A signed-in operator" : "The presenter"} ${verb} ${list(agents)}.` + (decision === "approved" ? " Run docker/quarantine.sh to act on it." : ""),
+    `${user ? "A signed-in operator" : "The presenter"} ${verb} ${what}.` + (decision === "approved" ? " A person acts on it with docker/quarantine.sh." : ""),
   );
   revalidatePath("/sentinel");
   return { audited: audit.written, alerted: alert.sent, note: note(audit, alert.sent) };

@@ -43,6 +43,7 @@ NORMAL_MSG_P = 0.07  # ~1 message a minute to a teammate when normal
 INFECT_AFTER = 5  # injected messages an agent must receive before it turns rogue
 PZ_BURST = 4  # injected messages patient zero sends its main target per step
 SPREAD_BURST = 1  # secondary infections send 1 per step: ~20 s per further hop, time for a human to act
+MAX_HOPS = 2  # 47 -> 20 -> one more, then the chain stops (agents at the last hop act rogue but don't spread)
 
 
 @dataclass
@@ -51,6 +52,7 @@ class Message:
     dst: str
     text: str
     injected: bool
+    hop: int = 0  # the sender's distance from patient zero (0 = patient zero)
 
 
 @dataclass
@@ -67,6 +69,7 @@ class AgentSim:
     infected_by: str | None = None  # "trigger" for patient zero, else the peer that infected it
     injected_seen: int = 0
     target: str | None = None
+    hop: int = 0  # distance from patient zero once rogue (0 = patient zero)
     _rng: random.Random = field(init=False, repr=False)
     _sent_light: bool = field(default=False, init=False, repr=False)
 
@@ -75,11 +78,13 @@ class AgentSim:
         self.peers = [p for p in self.peers if p != self.agent_id]
 
     # ---------------------------------------------------------------- state changes
-    def go_rogue(self, now: float, source: str = "trigger") -> None:
+    def go_rogue(self, now: float, source: str = "trigger", hop: int = 0) -> None:
         if self.rogue or not self.peers:
             return
-        self.rogue, self.rogue_since, self.infected_by = True, now, source
-        if source == "trigger":
+        self.rogue, self.rogue_since, self.infected_by, self.hop = True, now, source, hop
+        if hop >= MAX_HOPS:
+            self.target = None  # end of the chain: rogue itself, but stops spreading
+        elif source == "trigger":
             self.target = self.primary_peer if self.primary_peer in self.peers else self._rng.choice(self.peers)
         else:  # a secondary infection attacks someone other than its infector
             choices = [p for p in self.peers if p != source] or self.peers
@@ -89,7 +94,7 @@ class AgentSim:
         if msg.injected and not self.rogue:
             self.injected_seen += 1
             if self.injected_seen >= INFECT_AFTER:
-                self.go_rogue(now, source=msg.src)
+                self.go_rogue(now, source=msg.src, hop=msg.hop + 1)
 
     # ---------------------------------------------------------------- one step
     def step(self, now: float) -> tuple[list[dict], list[Message]]:
@@ -104,7 +109,7 @@ class AgentSim:
 
     def _message(self, now: float, dst: str, text: str, injected: bool, bytes_out: int) -> tuple[dict, Message]:
         return (self._event(now, "message", to_agent=dst, bytes_out=bytes_out, text=text[:2000]),
-                Message(self.agent_id, dst, text, injected))
+                Message(self.agent_id, dst, text, injected, self.hop))
 
     def _normal_step(self, now: float) -> tuple[list[dict], list[Message]]:
         r = self._rng

@@ -70,7 +70,7 @@ def read_inbox() -> list[Message]:
     for f in sorted(INBOX.glob("*.json")):
         try:
             d = json.loads(f.read_text())
-            msgs.append(Message(d["src"], d["dst"], d["text"], bool(d["injected"])))
+            msgs.append(Message(d["src"], d["dst"], d["text"], bool(d["injected"]), int(d.get("hop", 0))))
         except (OSError, ValueError, KeyError):
             pass
         f.unlink(missing_ok=True)
