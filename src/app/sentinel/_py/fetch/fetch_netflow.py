@@ -1,9 +1,10 @@
 """UQ NetFlow v3 -> data/real/nf_<name>.parquet, 200k-row stratified samples (git-ignored).
 
 NF-CSE-CIC-IDS2018-v3 (~20.1M flows) and NF-UNSW-NB15-v3 (~2.4M flows) are
-downloaded in a browser from UQ RDM (agents can't script it), and their
-licence must be read there. A human puts the CSV (or zip) files in
-``data-cache/`` at the repo root; this script streams them in chunks (never
+downloaded in a browser from UQ RDM (agents can't script it). Neither states
+a data licence (checked 2026-11-14: the UQ NIDS page and arXiv:2503.04404 only
+ask for a citation), so samples stay local and are never committed. A human
+puts the CSV (or zip) files in ``data-cache/`` at the repo root; this script streams them in chunks (never
 loading a multi-GB file at once) and writes a seeded sample per dataset.
 
 Sampling: pass 1 counts rows per attack class; pass 2 keeps each row with
@@ -43,7 +44,9 @@ DATASETS: dict[str, dict[str, str]] = {
         "url": "https://rdm.uq.edu.au/files/abd2f5d8-e268-4ff0-84fb-f2f7b3ca3e8f",
     },
 }
-LICENCE = "see the UQ RDM download page (not machine-readable): do not redistribute until a human confirms"
+LICENCE = ("none stated for the data (the UQ NIDS page and arXiv:2503.04404 give no data licence; the paper itself is "
+           "CC BY 4.0). Public direct download; citation required (arXiv:2503.04404). Confirmed 2026-11-14: local use "
+           "only, never redistributed; ask the UQ authors before sharing a sample")
 SAMPLE_ROWS = 200_000
 MIN_PER_CLASS = 500
 CHUNK = 500_000
@@ -110,7 +113,7 @@ def fetch_one(name: str, cache_dir: Path | None = None, out_dir: Path | None = N
     if not files:
         raise common.SkipFetch(
             f"{name}: no {spec['pattern']} file in data-cache/. A human downloads it in a browser from {spec['url']} "
-            "(read the licence there) and puts the CSV or zip in data-cache/."
+            "and puts the CSV or zip in data-cache/ (no data licence is stated: keep it local, cite arXiv:2503.04404)."
         )
     df, total, per_file = sample_files(files)
     path, sha = common.write_parquet(df, name, out_dir)

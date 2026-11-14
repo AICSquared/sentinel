@@ -33,7 +33,8 @@ log = logging.getLogger("sentinel.fetch.kaggle")
 NAME = "kaggle_prompts"
 SOURCE = "https://www.kaggle.com/datasets/chuneeb/ai-agent-cybersecurity-dataset-2026"
 FILE = "hf_prompt_injections.csv"
-LICENCE = "CC BY 4.0 (Kaggle dataset); upstream Hugging Face source licence not named: do not redistribute"
+LICENCE = ("CC BY 4.0 as stated by the Kaggle uploader (redistribution allowed with attribution), but the "
+           "upstream Hugging Face source is not named, so its own terms are unknown. Confirmed 2026-11-14: not committed")
 LABEL_NAMES = ("label", "is_injection", "injection", "class", "target")
 TEXT_NAMES = ("text", "prompt", "content", "input")
 SAMPLE_ROWS = 5_000

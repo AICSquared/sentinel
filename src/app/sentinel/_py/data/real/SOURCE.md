@@ -20,9 +20,9 @@ redistribution are git-ignored (see `.gitignore` here) and a human fetches them.
 
 - **Source:** https://huggingface.co/datasets/jayavibhav/prompt-injection-safety
 - **Revision:** c0f55c8817fb2d4da72ac7b06deba6033da6fad6
-- **Licence:** none declared on the dataset card (treat as all rights reserved: do not redistribute)
+- **Licence:** none: the dataset card declares no licence, and the owner has not answered the open licence question (huggingface.co/datasets/jayavibhav/prompt-injection-safety/discussions/3, since 2026-07-03). Confirmed 2026-11-14: local training only, never redistributed
 - **In git:** no (git-ignored; run the fetch)
-- **Fetched:** 2026-11-14 06:50 UTC
+- **Fetched:** 2026-11-14 07:21 UTC
 - **Rows:** 20000 sampled from 59193
 - **Label counts:** {'0': 9451, '1': 9130, '2': 1419}
 - **File:** `prompt_safety.parquet`, SHA-256 `1eb88bc0b90bdc3e7bf930c915b6cea2b61bef3a153e96ae7205ba453fcd9705`
