@@ -734,19 +734,35 @@ class Overseer:
         new = {"quarantine": "quarantined", "terminate": "terminated", "release": "active"}.get(action, status)
         if action != "dismiss":
             self._write_flags(agent_id, new)
-        if action == "release" and status == "terminated":
-            run.flag_origin = None  # restarts clean: fresh evidence from here on
+        restarted = action == "release" and status == "terminated"
+        if restarted:
+            # The agent restarts clean (docker/agent/agent.py), so its old behaviour must not be scored
+            # again: drop its 60 s window and its scoring history. Otherwise the pre-release attack events
+            # still in the window re-flag it seconds after the undo (#2 FINDING, Brandon, 08:17).
+            now = time.time()
+            events = getattr(self.backend.builder, "_events", None)
+            if isinstance(events, dict):
+                events.pop(agent_id, None)
+            run.event_ts.clear()
+            run.recent.clear()
+            run.flag_origin = None
+            run.first_flagged = None
+            run.last_risk, run.last_action, run.last_normal = 0, "monitor", now
         run.status = new
         who = re.sub(r"[^a-z0-9 -]", "", (by or "a person").lower())[:30] or "a person"
         verb = {"quarantine": "quarantined", "terminate": "terminated", "release": "released", "dismiss": "dismissed the alert for"}[action]
         self._log(time.time(), f"Human ({who}): {verb} {agent_id}")
         # show it on /agents now, not on the next 2 s tick
         shown = None if new == "active" else new
+        upd: dict = {"status": shown}
+        if restarted:
+            upd.update(risk=0, attack_type="clean", recommended_action="monitor", reason="Restarted clean after a person released it.",
+                       first_flagged_ts=None, evidence=None, top_features=None)
         if agent_id in self.last_agents:
-            self.last_agents[agent_id] = self.last_agents[agent_id].model_copy(update={"status": shown})
+            self.last_agents[agent_id] = self.last_agents[agent_id].model_copy(update=upd)
         self.snapshot = self.snapshot.model_copy(
             update={
-                "agents": [a.model_copy(update={"status": shown}) if a.agent_id == agent_id else a for a in self.snapshot.agents],
+                "agents": [a.model_copy(update=upd) if a.agent_id == agent_id else a for a in self.snapshot.agents],
                 "events": list(self.log),
             }
         )
