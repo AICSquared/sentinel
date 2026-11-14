@@ -245,10 +245,13 @@ export function ScrollFlow({ story, children }: { story: Story; children?: React
         ctx.beginPath();
         ctx.arc(x, y, p.r, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = red ? mix(pal.crit, 0.14) : mix(pal.ink3, 0.07);
-        ctx.beginPath();
-        ctx.arc(x, y, p.r * 3.4, 0, Math.PI * 2);
-        ctx.fill();
+        // a halo only on the red lights: grey halos pile up near the agents and read as dark smudges on a light ground
+        if (red) {
+          ctx.fillStyle = mix(pal.crit, 0.08);
+          ctx.beginPath();
+          ctx.arc(x, y, p.r * 3.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       // nodes: a soft light that grows with heat, a core, and a ring
@@ -256,12 +259,12 @@ export function ScrollFlow({ story, children }: { story: Story; children?: React
         const [x, y] = P[i];
         const hh = sim.heat[i];
         if (hh > 0.02) {
-          const g = ctx.createRadialGradient(x, y, 0, x, y, 26 + 70 * hh);
-          g.addColorStop(0, mix(pal.crit, 0.3 * hh));
+          const g = ctx.createRadialGradient(x, y, 0, x, y, 20 + 30 * hh);
+          g.addColorStop(0, mix(pal.crit, 0.07 * hh));
           g.addColorStop(1, mix(pal.crit, 0));
           ctx.fillStyle = g;
           ctx.beginPath();
-          ctx.arc(x, y, 26 + 70 * hh, 0, Math.PI * 2);
+          ctx.arc(x, y, 20 + 30 * hh, 0, Math.PI * 2);
           ctx.fill();
         }
       });
