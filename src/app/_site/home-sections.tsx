@@ -7,7 +7,7 @@ import { AgentNode, Callout, DecoyKey, FrameTicks, Overseer } from "./drawing";
 import { fitFrame, restingAgents } from "./frame";
 import { spoken, type Story } from "./story";
 
-const pill = "inline-flex min-h-11 items-center rounded-full px-6 text-[15px] font-medium";
+const pill = "inline-flex min-h-11 items-center rounded-[var(--radius-control)] px-6 text-[15px] font-medium";
 export const primaryLink = `${pill} bg-accent text-white hover:bg-accent-strong`;
 export const textLink = "inline-flex min-h-11 items-center text-[16px] text-ink underline decoration-1 underline-offset-[6px] hover:text-ink-2";
 const display = "font-light tracking-[-0.03em] text-ink";
@@ -84,7 +84,7 @@ export function Decide({ story }: { story: Story }) {
                 {t.min}–{t.max}
               </span>
               <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <span className={`inline-flex min-h-10 items-center rounded-full px-[18px] text-[15px] ${t.action === top ? "bg-crit text-ground" : "bg-info-bg text-ink"}`}>
+                <span className={`inline-flex min-h-10 items-center rounded-[var(--radius-tag)] px-[18px] text-[15px] ${t.action === top ? "bg-crit text-ground" : "bg-info-bg text-ink"}`}>
                   {TIER_WORDS[t.action].says}
                 </span>
                 <span className="text-sm text-ink-3">{TIER_WORDS[t.action].shown}</span>
@@ -132,7 +132,7 @@ export function Panel({ title, children, open }: { title: string; children: Reac
     <details open={open} className={`group rounded-[18px] border border-line bg-surface ${PANEL_MOTION}`}>
       <summary className="flex min-h-[60px] cursor-pointer list-none items-center justify-between gap-4 px-6 text-[16px] text-ink [&::-webkit-details-marker]:hidden">
         {title}
-        <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-full border border-ink text-[18px] leading-none font-light">
+        <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-[var(--radius-tag)] border border-ink text-[18px] leading-none font-light">
           <span className="group-open:hidden">+</span>
           <span className="hidden group-open:inline">−</span>
         </span>
