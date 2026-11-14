@@ -95,9 +95,15 @@ export function FleetScatter({
                 <span aria-hidden className="absolute top-0 left-0 w-px bg-ink-3" style={{ height: slot * LABEL_STEP_PX }} />
               )}
               {labelled && (
+                // When dots overlap (infected agents drift to the same spot), the labels are still stacked apart,
+                // so a label click picks its own agent. Mouse shortcut only: the dot button above is the
+                // keyboard and screen-reader control, so this one is skipped by Tab and hidden from assistive tech.
                 <span
+                  role={onSelect ? "presentation" : undefined}
+                  aria-hidden={onSelect ? true : undefined}
+                  onClick={onSelect ? () => onSelect(a.agent_id) : undefined}
                   style={{ marginTop: slot * LABEL_STEP_PX }}
-                  className={`absolute top-0 -translate-y-1/2 rounded-[var(--radius-tag)] bg-surface px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-ink ${flipLabel ? "right-0 mr-3" : "left-0 ml-3"}`}
+                  className={`absolute top-0 -translate-y-1/2 rounded-[var(--radius-tag)] bg-surface px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-ink ${flipLabel ? "right-0 mr-3" : "left-0 ml-3"} ${onSelect ? "cursor-pointer hover:bg-info-bg" : ""} ${a.agent_id === selectedId ? "ring-1 ring-accent" : ""}`}
                 >
                   {a.agent_id} · risk {a.risk} · {statusOf(a.agent_id) === "active" ? m.label : `${statusOf(a.agent_id)} by you`}
                 </span>
