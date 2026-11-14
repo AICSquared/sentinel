@@ -93,7 +93,7 @@ export function Decide({ story }: { story: Story }) {
       </div>
 
       {rec && (
-        <div className="self-start rounded-[28px] border border-crit/40 bg-crit-bg px-7 py-8 sm:px-10 sm:py-9">
+        <div className="self-start rounded-[16px] border border-crit/40 bg-crit-bg px-7 py-8 sm:px-10 sm:py-9">
           <h3 className="text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.08] font-light tracking-[-0.03em] text-ink">
             {top === "recommend_terminate" ? "Terminate" : "Quarantine"} {rec.agents.map((a) => a.id).join(" and ")}
           </h3>
