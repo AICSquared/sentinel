@@ -21,7 +21,7 @@ import urllib.request
 import uuid
 from pathlib import Path
 
-from swarm import DEFAULT_PAYLOADS, STEP_S, AgentSim, Message
+from swarm import DEFAULT_PAYLOADS, AgentSim, Message
 
 log = logging.getLogger("sentinel.agent")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
@@ -112,7 +112,7 @@ def main() -> None:
             deliver(msg)
         for ev in events:
             post_event(ev)
-        time.sleep(max(0.5, STEP_S + jitter.uniform(-1.0, 1.0)))
+        time.sleep(max(0.5, sim.pace() + jitter.uniform(-1.0, 1.0)))
 
 
 if __name__ == "__main__":
