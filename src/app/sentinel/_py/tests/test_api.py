@@ -31,7 +31,12 @@ def assert_b2(body: dict) -> None:
     assert body["sentinel"]["containment"] in {"none", "recommended", "approved", "dismissed"}
     assert len(body["sentinel"]["fleet_risk_history"]) <= 12
     for a in body["agents"]:
-        assert set(a) - {"components"} == B2_AGENT  # components is optional (T7)
+        assert set(a) - {"components", "top_features"} == B2_AGENT  # both optional (T7, #39)
+        if "top_features" in a:
+            assert 1 <= len(a["top_features"]) <= 5
+            assert all(set(f) == {"feature", "contribution"} for f in a["top_features"])
+            mags = [abs(f["contribution"]) for f in a["top_features"]]
+            assert mags == sorted(mags, reverse=True)
         if "components" in a:
             assert {"supervised", "anomaly", "fallback"} <= set(a["components"]) <= {"supervised", "anomaly", "fallback", "prompt"}
         assert a["role"] in ROLES and a["attack_type"] in ATTACKS and a["recommended_action"] in ACTIONS
@@ -338,3 +343,51 @@ def test_fake_agents_omit_components():
     body = TestClient(api.create_app(fake=True)).get("/agents").json()
     assert_b2(body)
     assert all("components" not in a for a in body["agents"])
+
+
+# ---------------------------------------------------------------- top_features (#39)
+
+
+def test_clean_top_features_sorts_by_magnitude_and_caps_at_five():
+    pairs = [("a", 0.1), ("b", -0.9), ("c", 0.5), ("d", 0.2), ("e", -0.3), ("f", 0.4), ("g", 0.05)]
+    out = api.clean_top_features(pairs)
+    assert [f["feature"] for f in out] == ["b", "c", "f", "e", "d"]
+    assert out[0] == {"feature": "b", "contribution": -0.9}
+
+
+def test_flagged_agent_carries_top_features_and_quiet_one_does_not(live):
+    client, overseer = live
+    script_attack(client)
+    client.post("/events", json=event("agent-2", tool="web.search"))
+    seen = []
+
+    def explain(row):
+        seen.append(row["agent_id"])
+        return api.clean_top_features([("touched_decoy", 4.1), ("msgs_to_agents_per_min", 2.2)])
+
+    overseer.backend.explain_fn = explain
+    overseer.tick(time.time())
+    body = client.get("/agents").json()
+    assert_b2(body)
+    by_id = {a["agent_id"]: a for a in body["agents"]}
+    assert by_id["agent-47"]["risk"] >= api.EXPLAIN_FROM_RISK
+    assert by_id["agent-47"]["top_features"][0] == {"feature": "touched_decoy", "contribution": 4.1}
+    assert "top_features" not in by_id["agent-2"]  # below the throttle tier: no bars, no model call
+    assert seen == ["agent-47"]
+
+
+def test_top_features_absent_when_explain_is_empty_or_raises(live):
+    client, overseer = live
+    script_attack(client)
+    overseer.backend.explain_fn = lambda row: []
+    overseer.tick(time.time())
+    assert all("top_features" not in a for a in client.get("/agents").json()["agents"])
+
+    def boom(row):
+        raise RuntimeError("model missing")
+
+    overseer.backend.explain_fn = boom
+    overseer.tick(time.time())
+    body = client.get("/agents").json()
+    assert_b2(body)
+    assert body["agents"][0]["risk"] >= 40 and "top_features" not in body["agents"][0]

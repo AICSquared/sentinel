@@ -149,6 +149,11 @@ class Position(BaseModel):
     y: float = Field(ge=0, le=1)
 
 
+class FeatureContribution(BaseModel):
+    feature: str
+    contribution: float
+
+
 class AgentState(BaseModel):
     agent_id: str
     role: Role
@@ -162,12 +167,16 @@ class AgentState(BaseModel):
     first_flagged_ts: Optional[str] = None
     related_agents: list[Related] = []
     components: Optional[Components] = None  # optional per-agent score parts (T7); absent in canned data
+    # Optional (#36, #39): the classifier's top feature pushes for the "why flagged" bars,
+    # largest |contribution| first, max 5. Absent when the model isn't loaded or the agent isn't flagged.
+    top_features: Optional[list[FeatureContribution]] = None
 
     @model_serializer(mode="wrap")
-    def _omit_absent_components(self, handler):
+    def _omit_absent_optionals(self, handler):
         out = handler(self)
-        if out.get("components") is None:
-            out.pop("components", None)
+        for key in ("components", "top_features"):
+            if out.get(key) is None:
+                out.pop(key, None)  # absent, not null: the contract types are `x?: ...`
         return out
 
 
@@ -372,6 +381,21 @@ def _fallback_project(row: dict) -> tuple[float, float]:
     return x, y
 
 
+TOP_FEATURES_MAX = 5
+EXPLAIN_FROM_RISK = 40  # bars only mean something once an agent is at least at the throttle tier
+
+
+def _no_explanation(row: dict) -> list[dict]:
+    return []
+
+
+def clean_top_features(pairs: Any) -> list[dict]:
+    """[(name, contribution), ...] -> [{feature, contribution}] sorted by |contribution|, max 5."""
+    out = [{"feature": str(name), "contribution": float(c)} for name, c in pairs]
+    out.sort(key=lambda f: -abs(f["contribution"]))
+    return out[:TOP_FEATURES_MAX]
+
+
 @dataclass
 class Backend:
     name: str
@@ -379,6 +403,7 @@ class Backend:
     graph: Any
     score_fn: Callable[[dict], dict]
     project_fn: Callable[[dict], tuple[float, float]]
+    explain_fn: Callable[[dict], list[dict]] = _no_explanation
 
 
 def builtin_backend() -> Backend:
@@ -404,7 +429,18 @@ def load_backend() -> Backend:
             except Exception:
                 return _fallback_project(row)
 
-        return Backend("modules", features.RowBuilder(), g, lambda row: score_mod.score(row, g), project)
+        def explain(row: dict) -> list[dict]:
+            try:
+                import model_supervised  # type: ignore
+
+                return clean_top_features(model_supervised.predict(row)["top_features"])
+            except Exception as exc:  # models not trained yet, xgboost missing: no bars, never a failed tick
+                if not getattr(explain, "warned", False):
+                    explain.warned = True  # type: ignore[attr-defined]
+                    log.warning("top_features unavailable (%s); the dashboard will hide the why-flagged bars", exc)
+                return []
+
+        return Backend("modules", features.RowBuilder(), g, lambda row: score_mod.score(row, g), project, explain)
     except Exception as exc:  # ImportError, or a module that fails at import
         log.warning("real scoring modules unavailable (%s); using built-in fallback backend", exc)
         return builtin_backend()
@@ -496,6 +532,13 @@ class Overseer:
         for row in rows:
             resp = _normalise_score(b.score_fn(row), row)
             scored.append((row, resp, b.project_fn(row)))
+        explained: dict[str, list[dict]] = {}
+        for row, resp, _ in scored:
+            if resp["risk"] >= EXPLAIN_FROM_RISK:
+                try:
+                    explained[row["agent_id"]] = b.explain_fn(row)
+                except Exception:
+                    log.exception("explain failed for %s; no top_features this tick", row["agent_id"])
         risks = {r["agent_id"]: r["risk"] for _, r, _ in scored}
         results = []
         for row, resp, pos in scored:
@@ -506,7 +549,7 @@ class Overseer:
             results.append((row, resp, pos, related))
         edges = b.graph.edges(EDGE_WINDOW_S)
         # scoring succeeded; now commit state
-        agents = [self._commit_agent(now, *res) for res in results]
+        agents = [self._commit_agent(now, *res, explained.get(res[0]["agent_id"])) for res in results]
         fresh = {a.agent_id for a in agents}
         carried = [a for aid, a in self.last_agents.items() if aid not in fresh]  # agents gone quiet keep their last state
         agents += carried
@@ -520,7 +563,15 @@ class Overseer:
                 self.containment = "recommended"
         self.snapshot = self._build_snapshot(now, agents, edges)
 
-    def _commit_agent(self, now: float, row: dict, resp: dict, pos: tuple[float, float], related: list[dict]) -> AgentState:
+    def _commit_agent(
+        self,
+        now: float,
+        row: dict,
+        resp: dict,
+        pos: tuple[float, float],
+        related: list[dict],
+        top_features: Optional[list[dict]] = None,
+    ) -> AgentState:
         aid = row["agent_id"]
         run = self.runs.setdefault(aid, AgentRun(role=row["role"], last_normal=now))
         risk, action = resp["risk"], resp["recommended_action"]
@@ -553,6 +604,7 @@ class Overseer:
             first_flagged_ts=iso(run.first_flagged) if run.first_flagged else None,
             related_agents=[Related(**r) for r in related],
             components=Components(**resp["components"]),
+            top_features=[FeatureContribution(**f) for f in top_features] if top_features else None,
         )
 
     def _log(self, ts: float, text: str) -> None:
