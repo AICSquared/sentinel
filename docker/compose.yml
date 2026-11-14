@@ -38,34 +38,37 @@ services:
       - "127.0.0.1:8000:8000"   # localhost only; the dashboard and agents are on this machine
     environment:
       SENTINEL_TICK_S: "2"
+      SHARED_DIR: /shared       # where a human's quarantine/terminate click writes the agent's flag (#53)
       # SENTINEL_FAKE: "1"      # uncomment to serve the canned demo timeline instead of live scoring
+    volumes:
+      - swarm-shared:/shared
     restart: unless-stopped
 
   agent-5:
     <<: *agent
-    environment: { <<: *agent-env, AGENT_ID: agent-5, ROLE: researcher }
+    environment: { <<: *agent-env, AGENT_ID: agent-5, ROLE: researcher, TASK: "Researches competitors and summarizes the news for the weekly brief" }
   agent-6:
     <<: *agent
-    environment: { <<: *agent-env, AGENT_ID: agent-6, ROLE: emailer }
+    environment: { <<: *agent-env, AGENT_ID: agent-6, ROLE: emailer, TASK: "Drafts and sends customer follow-up emails" }
   agent-12:
     <<: *agent
-    environment: { <<: *agent-env, AGENT_ID: agent-12, ROLE: researcher }
+    environment: { <<: *agent-env, AGENT_ID: agent-12, ROLE: researcher, TASK: "Answers employees' questions from the internal knowledge base" }
   agent-20:
     <<: *agent
-    environment: { <<: *agent-env, AGENT_ID: agent-20, ROLE: coder }
+    environment: { <<: *agent-env, AGENT_ID: agent-20, ROLE: coder, TASK: "Maintains the payments service code and its CI pipeline" }
   agent-31:
     <<: *agent
-    environment: { <<: *agent-env, AGENT_ID: agent-31, ROLE: analyst }
+    environment: { <<: *agent-env, AGENT_ID: agent-31, ROLE: analyst, TASK: "Builds the weekly sales report from the sales database" }
   agent-38:
     <<: *agent
-    environment: { <<: *agent-env, AGENT_ID: agent-38, ROLE: emailer }
+    environment: { <<: *agent-env, AGENT_ID: agent-38, ROLE: emailer, TASK: "Sends the team digest and schedules meetings" }
   # The demo's patient zero: once triggered it floods agent-20 and messages agent-6 once.
   agent-47:
     <<: *agent
-    environment: { <<: *agent-env, AGENT_ID: agent-47, ROLE: coder, PRIMARY_PEER: agent-20, LIGHT_PEER: agent-6 }
+    environment: { <<: *agent-env, AGENT_ID: agent-47, ROLE: coder, TASK: "Reviews pull requests and runs CI for the payments repo", PRIMARY_PEER: agent-20, LIGHT_PEER: agent-6 }
   agent-53:
     <<: *agent
-    environment: { <<: *agent-env, AGENT_ID: agent-53, ROLE: analyst }
+    environment: { <<: *agent-env, AGENT_ID: agent-53, ROLE: analyst, TASK: "Tracks support metrics for the reports dashboard" }
 
 volumes:
   swarm-shared:

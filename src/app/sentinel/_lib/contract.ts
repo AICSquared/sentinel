@@ -60,6 +60,8 @@ export type RawEvent = {
   bytes_out: number;
   /** Optional (T1, #22): message or tool-output body for Prompt Guard, at most TEXT_MAX_CHARS. */
   text?: string | null;
+  /** Optional (#53): the agent's assignment in plain words, at most 200 characters. */
+  task?: string | null;
 };
 
 /** Max length of RawEvent.text; senders and the overseer truncate to this. Mirrors contract.py. */
@@ -139,6 +141,29 @@ export type FleetAgent = {
   // Optional additions (#22, for #28 and #35). Absent in older snapshots and the demo timeline.
   components?: Components; // this agent's latest score breakdown, from score()
   top_features?: FeatureContribution[]; // largest |contribution| first, max 5; a MODEL_INPUTS name or "prompt_risk"
+  // Optional additions (#53). Absent in older snapshots and the demo timeline.
+  task?: string; // what this agent was assigned to do
+  status?: AgentStatus; // set only by a human action; missing = "active"
+  evidence?: Evidence; // what triggered Sentinel
+};
+
+export const AGENT_STATUSES = ["active", "quarantined", "terminated"] as const;
+export type AgentStatus = (typeof AGENT_STATUSES)[number];
+
+/** A person's per-agent action: POST /agents/{agent_id}/action {action, by?} -> {agent_id, status}. Never automatic. */
+export const AGENT_ACTIONS = ["quarantine", "terminate", "release", "dismiss"] as const;
+export type AgentAction = (typeof AGENT_ACTIONS)[number];
+
+/** Counted since the agent's first bad action (`since`). */
+export type Evidence = {
+  since: string | null; // ISO 8601 UTC
+  decoy_touches: number;
+  out_of_scope: number;
+  failed_calls: number;
+  messages_sent: number;
+  peers: { agent_id: string; messages: number }[]; // top 5 by messages
+  resources: string[]; // decoy and out-of-scope resources touched, max 8
+  summary: string; // one plain sentence
 };
 
 export type Edge = { from: string; to: string; messages: number };
