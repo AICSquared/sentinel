@@ -113,9 +113,26 @@ export function LiveFleet({
       if (target.length === 0) return;
       const res = await decide({ agents: target.map(toFlagged), decision, source });
       setDecisions((d) => ({ ...d, ...Object.fromEntries(target.map((a) => [a.agent_id, decision])) }));
-      setNote(res.note);
+      // Tell the overseer too, so GET /agents (and the TUI) show approved/dismissed, not "recommended".
+      // It only records the click; enforcement stays with a person (docker/quarantine.sh).
+      let overseerNote = "";
+      if (source === "live") {
+        try {
+          const r = await fetch(`${apiUrl}/decision`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ action: decision === "approved" ? "approve" : "dismiss" }),
+            signal: AbortSignal.timeout(2000),
+          });
+          // 409 = the overseer already has no open recommendation; nothing to sync.
+          if (!r.ok && r.status !== 409) overseerNote = " The overseer didn't record it; it still shows the recommendation.";
+        } catch {
+          overseerNote = " The overseer didn't answer; it still shows the recommendation.";
+        }
+      }
+      setNote(res.note + overseerNote);
     },
-    [undecided, recs, source],
+    [undecided, recs, source, apiUrl],
   );
 
   const replay = () => {
