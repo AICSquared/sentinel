@@ -475,6 +475,7 @@ class Overseer:
         self.history: deque = deque(maxlen=12)
         self.log: deque = deque(maxlen=50)
         self.last_agents: dict[str, AgentState] = {}
+        self.decided: set[str] = set()  # agents that were at quarantine+ when a human last decided
         self.snapshot = self._build_snapshot(time.time(), [], [])
 
     # -- ingest
@@ -504,6 +505,8 @@ class Overseer:
         if self.containment != "recommended":
             raise ValueError(f"nothing to decide (containment is {self.containment!r})")
         self.containment = "approved" if action == "approve" else "dismissed"
+        # The decision covers the agents flagged right now. One that is flagged later needs its own decision.
+        self.decided |= {a.agent_id for a in self.snapshot.agents if SEVERITY[a.recommended_action] >= 2}
         self._log(time.time(), f"Human: {self.containment} the recommendation")
         # show the click on /agents now, not on the next 2 s tick
         self.snapshot = self.snapshot.model_copy(
@@ -561,6 +564,14 @@ class Overseer:
             self.last_action = worst.recommended_action
             if self.containment == "none" and SEVERITY[self.last_action] >= 2:
                 self.containment = "recommended"
+            elif self.containment in ("approved", "dismissed"):
+                # Nothing happens without a human click, so an agent flagged AFTER the decision re-opens it.
+                newly_flagged = sorted(
+                    a.agent_id for a in agents if SEVERITY[a.recommended_action] >= 2 and a.agent_id not in self.decided
+                )
+                if newly_flagged:
+                    self.containment = "recommended"
+                    self._log(now, f"Sentinel: new recommendation for {', '.join(newly_flagged)} (not covered by the earlier decision)")
         self.snapshot = self._build_snapshot(now, agents, edges)
 
     def _commit_agent(
