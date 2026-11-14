@@ -1,25 +1,26 @@
 @import "tailwindcss";
 
-/* Sentinel dark: a SOC-console look. Near-black ground, slightly lifted surfaces, one blue, plain
-   language. Same token names as Direction D, so every page re-themes from this block alone.
-   Contrast (WCAG): ink-2 on surface ~8.8:1, ink-3 ~5.7:1, white on accent ~4.7:1, crit on surface ~6:1. */
+/* Sentinel L3 Cloud (light), chosen by Brandon (issue #65) to match the pitch deck. A cool grey ground,
+   white surfaces, one blue. Same token names as before, so every page re-themes from this block alone.
+   Contrast (WCAG): ink on surface 16.6:1, ink-2 8.0:1, ink-3 5.5:1; white on accent 6.4:1;
+   ok / warn / crit on surface 5.3 / 5.9 / 6.5:1. */
 @theme {
-  --color-ground: #0e1116;
-  --color-surface: #161a21;
-  --color-ink: #e6e8eb;
-  --color-ink-2: #b4bac3;
-  --color-ink-3: #8f96a1;
-  --color-line: #2a303b;
-  --color-accent: #3d6fd6;
-  --color-accent-strong: #2f5cb8;
-  --color-ok: #4fc28a;
-  --color-ok-bg: #12301f;
-  --color-warn: #f0b45a;
-  --color-warn-bg: #362810;
-  --color-crit: #f0716a;
-  --color-crit-tag: #ff9a92;
-  --color-crit-bg: #3d1815;
-  --color-info-bg: #232934;
+  --color-ground: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-ink: #1b1f24;
+  --color-ink-2: #4a515b;
+  --color-ink-3: #626973;
+  --color-line: #dde0e5;
+  --color-accent: #1f5fae;
+  --color-accent-strong: #184d8f;
+  --color-ok: #2a7a3b;
+  --color-ok-bg: #e6f2e9;
+  --color-warn: #8a5a00;
+  --color-warn-bg: #f8efdc;
+  --color-crit: #b3261e;
+  --color-crit-tag: #b3261e;
+  --color-crit-bg: #fbe9e7;
+  --color-info-bg: #eef1f5;
 
   --font-sans: var(--font-public-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
@@ -30,8 +31,8 @@
   --radius-tag: 4px;
 }
 
-html { color-scheme: dark; scrollbar-color: var(--color-line) var(--color-ground); }
-::selection { background: color-mix(in srgb, var(--color-accent) 45%, transparent); color: var(--color-ink); }
+html { color-scheme: light; scrollbar-color: var(--color-ink-3) var(--color-ground); }
+::selection { background: color-mix(in srgb, var(--color-accent) 22%, transparent); color: var(--color-ink); }
 body { background: var(--color-ground); color: var(--color-ink); }
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 h1, h2, h3 { text-wrap: balance; }

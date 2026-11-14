@@ -217,12 +217,11 @@ export function ScrollFlow({ story, children }: { story: Story; children?: React
         ctx.moveTo(P[e.a][0], P[e.a][1]);
         ctx.quadraticCurveTo(c[0], c[1], P[e.b][0], P[e.b][1]);
         ctx.lineWidth = 1 + Math.min(1, s / 30) * 1.5;
-        ctx.strokeStyle = hot || (sim.surge.get(ei) ?? 0) > now ? mix(pal.crit, 0.28 + 0.3 * Math.min(1, s / 30)) : mix(pal.ink3, 0.07 + 0.2 * Math.min(1, s / 20));
+        ctx.strokeStyle = hot || (sim.surge.get(ei) ?? 0) > now ? mix(pal.crit, 0.4 + 0.4 * Math.min(1, s / 30)) : mix(pal.ink3, 0.16 + 0.3 * Math.min(1, s / 20));
         ctx.stroke();
       });
 
-      // the lights flowing along the threads
-      ctx.globalCompositeOperation = "lighter";
+      // the lights flowing along the threads (plain alpha: on the light ground additive blending would wash out)
       for (const p of sim.parts) {
         if (animate) {
           p.t += p.dir * p.v * (dt / 1000) * (0.6 + edges[p.e].s[ti] / 28);
@@ -242,14 +241,17 @@ export function ScrollFlow({ story, children }: { story: Story; children?: React
         const red = (sim.heat[src] > 0.5 && e.s[ti] >= INFECTS_AT / 2) || ((sim.surge.get(p.e) ?? 0) > now && p.v > 0.4);
         const c = ctrl(P[e.a], P[e.b], e.bend, e.phase, now, animate);
         const [x, y] = bez(P[e.a], c, P[e.b], p.t);
-        ctx.fillStyle = red ? mix(pal.crit, 0.8) : mix(pal.ink3, 0.5);
+        ctx.fillStyle = red ? mix(pal.crit, 0.9) : mix(pal.ink3, 0.6);
         ctx.beginPath();
         ctx.arc(x, y, p.r, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = red ? mix(pal.crit, 0.1) : mix(pal.ink3, 0.05);
-        ctx.beginPath();
-        ctx.arc(x, y, p.r * 3.4, 0, Math.PI * 2);
-        ctx.fill();
+        // a halo only on the red lights: grey halos pile up near the agents and read as dark smudges on a light ground
+        if (red) {
+          ctx.fillStyle = mix(pal.crit, 0.08);
+          ctx.beginPath();
+          ctx.arc(x, y, p.r * 3.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       // nodes: a soft light that grows with heat, a core, and a ring
@@ -257,16 +259,15 @@ export function ScrollFlow({ story, children }: { story: Story; children?: React
         const [x, y] = P[i];
         const hh = sim.heat[i];
         if (hh > 0.02) {
-          const g = ctx.createRadialGradient(x, y, 0, x, y, 26 + 70 * hh);
-          g.addColorStop(0, mix(pal.crit, 0.5 * hh));
+          const g = ctx.createRadialGradient(x, y, 0, x, y, 20 + 30 * hh);
+          g.addColorStop(0, mix(pal.crit, 0.07 * hh));
           g.addColorStop(1, mix(pal.crit, 0));
           ctx.fillStyle = g;
           ctx.beginPath();
-          ctx.arc(x, y, 26 + 70 * hh, 0, Math.PI * 2);
+          ctx.arc(x, y, 20 + 30 * hh, 0, Math.PI * 2);
           ctx.fill();
         }
       });
-      ctx.globalCompositeOperation = "source-over";
       inc.rows.forEach((r, i) => {
         const [x, y] = P[i];
         const hh = sim.heat[i];
