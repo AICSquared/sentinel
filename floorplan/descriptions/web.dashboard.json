@@ -1,0 +1,16 @@
+{
+  "files": {
+    "src/app/sentinel/actions.ts": {
+      "name": "Decision handling",
+      "description": "Records each recommendation and human decision in the audit log, sends Discord alerts, and asks the scoring server to quarantine, stop or release an agent."
+    },
+    "src/app/sentinel/live-fleet.tsx": {
+      "name": "Live dashboard",
+      "description": "Asks the scoring server for the team's status every second, falls back to the recording, and passes a person's clicks on."
+    },
+    "src/app/sentinel/page.tsx": {
+      "name": "Sentinel page",
+      "description": "The /sentinel screen: decides whether to watch the live team or play the recorded run, then shows the dashboard."
+    }
+  }
+}

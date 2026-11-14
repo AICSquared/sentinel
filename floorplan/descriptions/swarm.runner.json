@@ -1,0 +1,8 @@
+{
+  "files": {
+    "docker/agent/agent.py": {
+      "name": "Agent runner",
+      "description": "Runs one agent: reads its inbox, obeys the rogue, quarantine and stop flags, and reports each action to the scoring server."
+    }
+  }
+}

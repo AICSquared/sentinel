@@ -1,0 +1,242 @@
+{
+  "$schema": "floorplan/architecture@1",
+  "audience": "everyone",
+  "project": {
+    "name": "Sentinel",
+    "summary": "Sentinel watches a team of 8 AI agents, gives each one a risk score from 0 to 100 every 2 seconds, works out which agent turned first and who it infected, and asks a person whether to quarantine or stop it. A website shows the team live; a separate scoring server does the watching; the agents themselves run as a simulated team in Docker.",
+    "entrypoints": [
+      "src/app/sentinel/page.tsx",
+      "src/app/sentinel/_py/api.py",
+      "docker/agent/agent.py"
+    ]
+  },
+  "ignore": [".claude/**"],
+  "nodes": [
+    {
+      "id": "web",
+      "label": "Website",
+      "kind": "ui",
+      "summary": "The site people open: the live Sentinel dashboard, the front page, and the sign-in and starter pages the team template came with.",
+      "paths": ["src/**", "next.config.ts", "eslint.config.mjs"],
+      "exclude": ["src/app/sentinel/_py/**", "src/app/sentinel/_tui/**"]
+    },
+    {
+      "id": "web.dashboard",
+      "parent": "web",
+      "label": "Sentinel dashboard",
+      "kind": "feature",
+      "summary": "The /sentinel page: polls the scoring server every second (or plays a recorded run with no network) and sends a person's quarantine, stop or release clicks back.",
+      "paths": ["src/app/sentinel/page.tsx", "src/app/sentinel/live-fleet.tsx", "src/app/sentinel/actions.ts"]
+    },
+    {
+      "id": "web.panels",
+      "parent": "web",
+      "label": "Dashboard panels",
+      "kind": "ui",
+      "summary": "The pieces of the dashboard: the map of agents, the patient-zero card, who-talked-to-whom, why an agent was flagged, the action buttons and the event log.",
+      "paths": ["src/app/sentinel/_components/**"]
+    },
+    {
+      "id": "web.response",
+      "parent": "web",
+      "label": "Rules, audit log and alerts",
+      "kind": "library",
+      "summary": "Turns a risk score into a recommendation, writes every recommendation and human decision to an audit log nobody can edit, and posts alerts to Discord.",
+      "paths": ["src/app/sentinel/_lib/**"]
+    },
+    {
+      "id": "web.frame",
+      "parent": "web",
+      "label": "Site frame and shared kit",
+      "kind": "library",
+      "summary": "The front page, page layout, presenter bar, demo-mode switch and the buttons, cards and animated numbers every page reuses.",
+      "paths": ["src/components/**", "src/app/layout.tsx", "src/app/page.tsx", "src/app/globals.css", "src/lib/demo.ts", "src/lib/tracks.ts", "next.config.ts", "eslint.config.mjs"]
+    },
+    {
+      "id": "web.starter",
+      "parent": "web",
+      "label": "Sign-in and starter example",
+      "kind": "feature",
+      "summary": "Sign-in, the connection to Supabase, a health check and an example page that came with the team's template; Sentinel uses only the Supabase connection.",
+      "paths": ["src/app/(auth)/**", "src/app/example/**", "src/app/api/**", "src/lib/supabase/**", "src/lib/jobs.ts", "src/proxy.ts"]
+    },
+    {
+      "id": "overseer",
+      "label": "Scoring server",
+      "kind": "service",
+      "summary": "Receives every action the agents take, turns each agent's last minute into ten numbers, scores it 0 to 100 with three models, traces who messaged whom, and carries out a person's quarantine or stop.",
+      "paths": ["src/app/sentinel/_py/**"],
+      "exclude": ["src/app/sentinel/_py/tests/**", "src/app/sentinel/_py/fetch/test_fetch.py"]
+    },
+    {
+      "id": "overseer.api",
+      "parent": "overseer",
+      "label": "Server front door",
+      "kind": "feature",
+      "summary": "The web addresses the agents and the dashboard talk to: report an action, get the whole team's status, record a decision, act on one agent.",
+      "paths": ["src/app/sentinel/_py/api.py", "src/app/sentinel/_py/__init__.py"]
+    },
+    {
+      "id": "overseer.features",
+      "parent": "overseer",
+      "label": "Behaviour summary and contact map",
+      "kind": "feature",
+      "summary": "Turns each agent's last 60 seconds of actions into ten numbers, and keeps the map of which agent messaged which over the last 5 minutes.",
+      "paths": ["src/app/sentinel/_py/features.py", "src/app/sentinel/_py/graph.py"]
+    },
+    {
+      "id": "overseer.models",
+      "parent": "overseer",
+      "label": "Detection models",
+      "kind": "feature",
+      "summary": "Three models: one that knows the attacks it was trained on, one that notices anything unusual, and one that reads messages for hidden instructions.",
+      "paths": ["src/app/sentinel/_py/model_anomaly.py", "src/app/sentinel/_py/model_supervised.py", "src/app/sentinel/_py/prompt_guard.py"]
+    },
+    {
+      "id": "overseer.scoring",
+      "parent": "overseer",
+      "label": "Risk score",
+      "kind": "feature",
+      "summary": "Combines the three models into one 0 to 100 risk, picks the recommendation, writes the plain-English reason, and falls back to a simple rule if the models are missing.",
+      "paths": ["src/app/sentinel/_py/score.py", "src/app/sentinel/_py/contract.py"]
+    },
+    {
+      "id": "overseer.data",
+      "parent": "overseer",
+      "label": "Training data and recordings",
+      "kind": "script",
+      "summary": "Builds the simulated training data, downloads the public datasets, and records a real run as the dashboard's offline demo.",
+      "paths": ["src/app/sentinel/_py/make_dataset.py", "src/app/sentinel/_py/record_timeline.py", "src/app/sentinel/_py/fetch/**"]
+    },
+    {
+      "id": "swarm",
+      "label": "Agent team (simulated)",
+      "kind": "worker",
+      "summary": "Eight scripted agents, each in its own sealed box on the laptop, that do normal work, report every action to the scoring server, and can be turned rogue on cue so the attack spreads through their messages.",
+      "paths": ["docker/**"]
+    },
+    {
+      "id": "swarm.runner",
+      "parent": "swarm",
+      "label": "Agent runner",
+      "kind": "feature",
+      "summary": "Runs one agent in its container: reads its inbox, follows the rogue, quarantine and stop flags, and reports each action to the scoring server.",
+      "paths": ["docker/agent/agent.py"]
+    },
+    {
+      "id": "swarm.behaviour",
+      "parent": "swarm",
+      "label": "Agent behaviour script",
+      "kind": "library",
+      "summary": "What a normal agent does and what a hijacked one does (touch a planted credential, reach outside its role, flood a peer), seeded so every run repeats.",
+      "paths": ["docker/agent/swarm.py"]
+    },
+    {
+      "id": "swarm.controls",
+      "parent": "swarm",
+      "label": "Demo controls",
+      "kind": "script",
+      "summary": "Three commands a presenter runs: turn one agent rogue, pause agents a person approved, and reset everything between rehearsals.",
+      "paths": ["docker/*.sh"]
+    },
+    {
+      "id": "monitor",
+      "label": "Terminal monitor",
+      "kind": "ui",
+      "summary": "A read-only text screen for the team's terminal that shows the same live team status as the dashboard, falling back to a saved sample.",
+      "paths": ["src/app/sentinel/_tui/**"]
+    },
+    {
+      "id": "tests",
+      "label": "Automated checks",
+      "kind": "test",
+      "summary": "Checks that run before every change: the scoring server's web addresses, each model, the risk score, the recorder and the dataset downloads.",
+      "paths": ["src/app/sentinel/_py/tests/**", "src/app/sentinel/_py/fetch/test_fetch.py"]
+    },
+    {
+      "id": "db",
+      "label": "Database setup",
+      "kind": "data",
+      "summary": "The two Supabase setup scripts: the starter tables, and the audit log that can be added to but never edited or deleted.",
+      "paths": ["supabase/migrations/**"]
+    },
+    {
+      "id": "supabase",
+      "label": "Supabase",
+      "kind": "external",
+      "summary": "The hosted database and sign-in service; Sentinel stores its audit log there.",
+      "packages": ["npm:@supabase/*"]
+    },
+    {
+      "id": "discord",
+      "label": "Discord",
+      "kind": "external",
+      "summary": "The team's chat channel, which gets a short alert when a recommendation appears or a person acts."
+    },
+    {
+      "id": "datasets",
+      "label": "Public datasets",
+      "kind": "external",
+      "summary": "Where the real training and test data comes from: Hugging Face, the InjecAgent project on GitHub, Kaggle and the University of Queensland network datasets.",
+      "hosts": ["huggingface.co", "raw.githubusercontent.com", "github.com", "www.kaggle.com", "rdm.uq.edu.au"]
+    }
+  ],
+  "edges": [
+    { "from": "src/app/sentinel/_lib/alert.ts", "to": "discord", "kind": "http", "label": "alert", "description": "Posts one plain-text message to the Discord webhook set in DISCORD_WEBHOOK_URL; skipped in demo mode." },
+    { "from": "src/app/sentinel/_py/api.py", "to": "docker/agent/agent.py", "kind": "data", "label": "quarantine / stop flags", "description": "When a person clicks Quarantine, Stop or Release, the server writes or removes a flag file on the shared Docker volume, and the agent obeys it on its next step." },
+    { "from": "swarm.controls", "to": "docker/agent/agent.py", "kind": "data", "label": "rogue flag", "description": "trigger.sh drops a flag file on the shared volume; the agent turns rogue on its next step." },
+    { "from": "src/app/sentinel/_lib/audit.ts", "to": "db", "kind": "data", "label": "audit_log table", "description": "Each recommendation and human decision is added as a row to the audit_log table these scripts create." },
+    { "from": "src/app/sentinel/_tui/monitor.py", "to": "src/app/sentinel/_py/api.py", "kind": "http", "label": "GET /agents", "description": "Polls the team's status from the scoring server." },
+    { "from": "src/app/sentinel/_py/make_dataset.py", "to": "overseer.models", "kind": "data", "label": "actions.csv", "description": "The simulated training set this script writes is what the behaviour models learn from." },
+    { "from": "src/app/sentinel/_py/fetch/fetch_all.py", "to": "src/app/sentinel/_py/prompt_guard.py", "kind": "data", "label": "data/real/*", "description": "The downloaded prompt-injection samples Prompt Guard trains and is tested on." }
+  ],
+  "annotations": [
+    { "path": "src/app/sentinel/_py/api.py", "note": "The busiest file: every agent action, every dashboard poll and every human action passes through here.", "tags": ["hotspot"] }
+  ],
+  "flows": [
+    {
+      "id": "detect",
+      "title": "Spotting a hijacked agent",
+      "description": "From the presenter turning one agent rogue to the dashboard naming patient zero and the agents it infected.",
+      "steps": [
+        { "node": "swarm.controls", "note": "The presenter runs trigger.sh agent-47, which drops a rogue flag for that agent." },
+        { "node": "docker/agent/agent.py", "note": "Agent 47 turns rogue: it touches a planted credential and floods agent 20 with injected messages, reporting each action." },
+        { "node": "src/app/sentinel/_py/api.py", "note": "The scoring server receives every action and, every 2 seconds, scores each agent." },
+        { "node": "src/app/sentinel/_py/features.py", "note": "Each agent's last minute becomes ten numbers: actions, failures, messages, data sent, planted credential touched and so on." },
+        { "node": "src/app/sentinel/_py/score.py", "note": "The three models' views are combined into one 0 to 100 risk with a plain-English reason." },
+        { "node": "src/app/sentinel/live-fleet.tsx", "note": "The dashboard picks it up within a second: agent 47's dot turns red and drifts away, and it is named patient zero." }
+      ]
+    },
+    {
+      "id": "act",
+      "title": "A person stops an agent",
+      "description": "Sentinel only recommends. This is what happens when someone clicks Quarantine or Stop.",
+      "steps": [
+        { "node": "src/app/sentinel/_components/agent-actions.tsx", "note": "A person picks an agent and clicks Quarantine, Stop or Release." },
+        { "node": "src/app/sentinel/actions.ts", "note": "The click is handled on the server: it is written to the audit log and sent on to the scoring server." },
+        { "node": "src/app/sentinel/_lib/audit.ts", "note": "One row goes into the audit log, which can be added to but never changed." },
+        { "node": "src/app/sentinel/_py/api.py", "note": "The scoring server writes the quarantine or stop flag for that one agent." },
+        { "node": "docker/agent/agent.py", "note": "The agent sees the flag on its next step and stops sending; Release restarts it clean." }
+      ]
+    },
+    {
+      "id": "train",
+      "title": "Teaching the models",
+      "description": "How the three detection models get their training data before the server starts.",
+      "steps": [
+        { "node": "src/app/sentinel/_py/make_dataset.py", "note": "Simulates runs of 8 agents and labels each minute clean or one of four attack types." },
+        { "node": "src/app/sentinel/_py/model_supervised.py", "note": "Learns the known attack types from those labelled rows." },
+        { "node": "src/app/sentinel/_py/fetch/fetch_all.py", "note": "Downloads real prompt-injection examples from public datasets." },
+        { "node": "src/app/sentinel/_py/prompt_guard.py", "note": "Learns to spot hidden instructions in message text, and is tested on a different dataset." }
+      ]
+    }
+  ],
+  "tour": [
+    { "node": "web", "title": "What Sentinel is", "note": "An overseer for a team of AI agents. This website is where a person watches the team and decides what to do about an agent that has been hijacked." },
+    { "node": "swarm", "title": "The team being watched", "note": "Eight simulated agents running in Docker. They do normal work until the presenter turns one rogue, and then the attack spreads through their messages." },
+    { "node": "overseer", "title": "The scoring server", "note": "Every agent action comes here. Every 2 seconds it scores each agent from 0 to 100 and traces who talked to whom." },
+    { "node": "overseer.models", "title": "Three detection models", "note": "One recognises known attacks, one notices anything unusual, and one reads messages for hidden instructions." },
+    { "node": "web.response", "title": "Recommend, never act alone", "note": "Sentinel only recommends. A person decides, every decision goes to an audit log nobody can edit, and the team gets a Discord alert." },
+    { "node": "src/app/sentinel/live-fleet.tsx", "title": "The live dashboard", "note": "The screen judges see: each agent as a dot, the hijacked one drifting red, and buttons to quarantine or stop it." }
+  ]
+}

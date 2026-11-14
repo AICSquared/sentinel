@@ -1,0 +1,44 @@
+{
+  "files": {
+    "eslint.config.mjs": {
+      "name": "Code style rules",
+      "description": "Settings for the automatic code-style checker."
+    },
+    "next.config.ts": {
+      "name": "Website settings",
+      "description": "Build settings for the website."
+    },
+    "src/app/globals.css": {
+      "name": "Colours and fonts",
+      "description": "The site-wide colours, fonts and dark theme every page uses."
+    },
+    "src/app/layout.tsx": {
+      "name": "Page frame",
+      "description": "Wraps every page with the site's fonts and the presenter bar."
+    },
+    "src/app/page.tsx": {
+      "name": "Front page",
+      "description": "Sends visitors straight to the Sentinel dashboard."
+    },
+    "src/components/kpi.tsx": {
+      "name": "Animated number",
+      "description": "Shows a headline number that animates when it changes."
+    },
+    "src/components/presenter-bar.tsx": {
+      "name": "Presenter bar",
+      "description": "A slim bar on every page for live demos: jump between tracks, with [ and ] keys and h for home."
+    },
+    "src/components/ui/index.tsx": {
+      "name": "Shared screen building blocks",
+      "description": "The cards, buttons, tags, headers and form fields every screen reuses."
+    },
+    "src/lib/demo.ts": {
+      "name": "Demo-mode switch",
+      "description": "Turns on demo mode when asked or when Supabase isn't set up, so a demo never needs Wi-Fi or outside services."
+    },
+    "src/lib/tracks.ts": {
+      "name": "Track list",
+      "description": "Lists the tracks the site shows; here only Sentinel."
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "files": {
+    "src/app/(auth)/actions.ts": {
+      "name": "Sign in and out",
+      "description": "Signs a person in, signs them up or signs them out through Supabase."
+    },
+    "src/app/(auth)/login/page.tsx": {
+      "name": "Sign-in page",
+      "description": "The sign-in and sign-up form, or a setup notice when Supabase isn't configured."
+    },
+    "src/app/api/health/route.ts": {
+      "name": "Pre-demo check",
+      "description": "Reports whether Supabase is connected and whether demo mode is on."
+    },
+    "src/app/example/actions.ts": {
+      "name": "Example job actions",
+      "description": "Creates a sample job, runs it in the background and deletes it again; part of the template's example."
+    },
+    "src/app/example/auto-refresh.tsx": {
+      "name": "Example auto-refresh",
+      "description": "Refreshes the example page every few seconds while a job is still running."
+    },
+    "src/app/example/page.tsx": {
+      "name": "Example page",
+      "description": "The template's example screen: sign in, start sample jobs and watch them finish."
+    },
+    "src/lib/jobs.ts": {
+      "name": "Example job work",
+      "description": "The placeholder work a sample job does; nothing in Sentinel uses it."
+    },
+    "src/lib/supabase/admin.ts": {
+      "name": "Supabase full-access connection",
+      "description": "Connects to Supabase with the secret key, bypassing per-user rules; only the example page uses it."
+    },
+    "src/lib/supabase/client.ts": {
+      "name": "Supabase connection (browser)",
+      "description": "Connects to Supabase from the browser; nothing uses it yet."
+    },
+    "src/lib/supabase/env.ts": {
+      "name": "Supabase settings",
+      "description": "Reads the Supabase address and public key in one place, and says whether they are filled in."
+    },
+    "src/lib/supabase/server.ts": {
+      "name": "Supabase connection (server)",
+      "description": "Connects to Supabase on the server as the signed-in person, and looks up who that is."
+    },
+    "src/proxy.ts": {
+      "name": "Keep people signed in",
+      "description": "Refreshes each visitor's Supabase sign-in on every request so pages see a valid one."
+    }
+  },
+  "routes": {
+    "GET /api/health": {
+      "name": "Pre-demo check",
+      "description": "Replies whether Supabase is connected and whether demo mode is on."
+    }
+  }
+}
