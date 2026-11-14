@@ -7,7 +7,7 @@ import { LiveFleet } from "./live-fleet";
 // Sentinel (Cisco, Mission 3). The integrator (Alex's Claude) owns this file and wires in the
 // parts. Demo mode plays _data/demo_timeline.json with no network and no keys; otherwise the
 // page polls the overseer's GET /agents (NEXT_PUBLIC_SENTINEL_API_URL, default localhost:8000).
-export const metadata: Metadata = { title: "Sentinel" };
+export const metadata: Metadata = { title: "Live fleet" };
 
 // JSON imports widen literal unions to string, so cast. The file was checked against contract.py in PR #12.
 const timeline = (timelineJson as unknown as DemoTimeline).ticks;

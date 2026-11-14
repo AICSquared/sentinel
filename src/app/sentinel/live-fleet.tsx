@@ -48,7 +48,8 @@ export function LiveFleet({
   demo: boolean;
   apiUrl: string;
 }) {
-  const [source, setSource] = useState<Source>(demo ? "demo" : "live");
+  // Starts on the recording; switches to "live" when the overseer first answers (never in demo mode).
+  const [source, setSource] = useState<Source>("demo");
   const [tick, setTick] = useState(0);
   const [live, setLive] = useState<FleetSnapshot | null>(null);
   const [offline, setOffline] = useState(false);
@@ -63,9 +64,11 @@ export function LiveFleet({
     return () => clearInterval(id);
   }, [source, timeline.length]);
 
-  // Live polling. Falls back to demo playback only if the overseer never answered.
+  // Live polling never gives up. Until the overseer first answers, the recorded run plays as a
+  // placeholder (clearly labelled); the moment it answers, the page switches to live data. This
+  // matters on stage: `docker compose up --build` restarts the overseer for ~20 s.
   useEffect(() => {
-    if (source !== "live") return;
+    if (demo) return;
     let stop = false;
     let gotOne = false;
     const poll = async () => {
@@ -74,16 +77,19 @@ export function LiveFleet({
         if (!res.ok) throw new Error(String(res.status));
         const snap = (await res.json()) as FleetSnapshot;
         if (stop) return;
-        gotOne = true;
+        if (!gotOne) {
+          // First live answer: drop anything clicked during the placeholder playback.
+          gotOne = true;
+          setDecisions({});
+          recorded.current.clear();
+          setNote("");
+          setSource("live");
+        }
         setLive(snap);
         setOffline(false);
       } catch {
         if (stop) return;
         setOffline(true);
-        if (!gotOne) {
-          setSource("demo");
-          setNote("The overseer isn't answering, so this is the recorded demo run.");
-        }
       }
     };
     poll();
@@ -92,7 +98,7 @@ export function LiveFleet({
       stop = true;
       clearInterval(id);
     };
-  }, [source, apiUrl]);
+  }, [demo, apiUrl]);
 
   const snapshot: FleetSnapshot = source === "live" && live ? live : timeline[Math.min(tick, timeline.length - 1)];
   const recs = pendingRecommendations(snapshot);
@@ -157,7 +163,9 @@ export function LiveFleet({
             ? offline
               ? "Overseer not answering; showing the last snapshot."
               : "Live from the overseer, updated every second."
-            : `Recorded demo run, second ${step} of ${timeline.length}.`}
+            : demo
+              ? `Recorded demo run, second ${step} of ${timeline.length}.`
+              : `Waiting for the overseer at ${apiUrl}: showing the recorded run (second ${step} of ${timeline.length}) until it answers.`}
         </span>
         {source === "demo" && (
           <Button variant="secondary" onClick={replay}>Replay demo</Button>

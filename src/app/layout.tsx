@@ -8,8 +8,8 @@ const publicSans = localFont({ src: "./fonts/public-sans-latin-wght-normal.woff2
 const plexMono = localFont({ src: "./fonts/ibm-plex-mono-latin-400-normal.woff2", weight: "400", variable: "--font-plex-mono" });
 
 export const metadata: Metadata = {
-  title: { default: "HackNCAT", template: "%s · HackNCAT" },
-  description: "Team projects for HackNCAT.",
+  title: { default: "Sentinel", template: "%s · Sentinel" },
+  description: "Sentinel watches a team of AI agents and recommends containment to a human.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

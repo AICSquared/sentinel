@@ -33,7 +33,7 @@ type ButtonVariant = "primary" | "secondary";
 const buttonClass = (v: ButtonVariant = "primary") =>
   cx(
     "inline-flex min-h-12 items-center justify-center rounded-[var(--radius-control)] px-5 text-[15px] font-semibold transition-colors disabled:opacity-50",
-    v === "primary" ? "bg-accent text-white hover:bg-accent-strong" : "border border-[#c9c6bf] bg-surface text-ink hover:bg-ground",
+    v === "primary" ? "bg-accent text-white hover:bg-accent-strong" : "border border-ink-3/60 bg-surface text-ink hover:bg-ground",
   );
 
 export function Button({ variant, className, ...props }: ComponentProps<"button"> & { variant?: ButtonVariant }) {
