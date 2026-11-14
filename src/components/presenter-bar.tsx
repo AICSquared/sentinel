@@ -30,8 +30,9 @@ export function PresenterBar() {
   return (
     <nav aria-label="Tracks" className="border-b border-line bg-surface">
       <div className="mx-auto flex max-w-5xl items-center gap-1 overflow-x-auto px-5 sm:px-8">
-        <Link href="/" className="flex min-h-11 items-center pr-3 font-semibold">HackNCAT</Link>
-        {shown.map((t) => (
+        <Link href="/sentinel" className="flex min-h-11 items-center pr-3 font-semibold">Sentinel</Link>
+        {/* One track today, so the brand is the only link; extra tracks would list here. */}
+        {shown.length > 1 && shown.map((t) => (
           <Link
             key={t.slug}
             href={`/${t.slug}`}
