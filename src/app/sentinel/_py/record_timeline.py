@@ -25,11 +25,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -41,9 +43,27 @@ import contract as C  # noqa: E402
 REPO_ROOT = HERE.parents[3]  # _py -> sentinel -> app -> src -> repo
 DEFAULT_OUT = HERE.parent / "_data" / "demo_timeline.json"
 DEFAULT_TRIGGER = "docker/trigger.sh agent-47"
-# Who really turns rogue in the seeded swarm (SEED=7, MAX_HOPS=2): agent-47 floods agent-20, which infects agent-31.
-# Read from the agents' own logs ("turned rogue"). Override with --infected if the seed or swarm changes.
-DEFAULT_INFECTED = "agent-47,agent-20,agent-31"
+ROGUE_LINE = re.compile(r"(agent-\d+) turned rogue")
+
+
+def rogue_agents(log_text: str) -> set[str]:
+    """Who really turned rogue, from the agents' own log lines ("agent-20 turned rogue (agent-47), ...").
+
+    The first hop is fixed (agent-47 floods agent-20) but later hops are a random pick, so the ground truth
+    comes from the logs of the run being recorded, never from an assumption about the chain.
+    """
+    return set(ROGUE_LINE.findall(log_text))
+
+
+def read_agent_logs(logs_dir: Path | None, since_iso: str) -> str:
+    """Agent log text for this run: every *.log in `logs_dir` (native), else `docker compose logs` since the start."""
+    if logs_dir is not None:
+        return "\n".join(f.read_text(encoding="utf-8", errors="replace") for f in sorted(logs_dir.glob("*.log")))
+    done = subprocess.run(
+        ["docker", "compose", "-f", "docker/compose.yml", "logs", "--no-color", "--since", since_iso],
+        cwd=REPO_ROOT, capture_output=True, text=True,
+    )
+    return done.stdout + done.stderr
 
 B2_TOP = {"updated", "mode", "sentinel", "agents", "edges", "events"}
 B2_SENTINEL = {"patient_zero", "origin_ts", "containment", "last_action", "fleet_risk_history"}
@@ -122,7 +142,7 @@ def validate_tick(tick: dict) -> list[str]:
 def check_run(ticks: list[dict], trigger_tick: int, approve_tick: int | None, infected: set[str] | None = None) -> list[str]:
     """Problems with the run as a demo (empty list = usable). Separate from the per-tick contract check.
 
-    `infected` is who really turned rogue (the seeded swarm's chain, see DEFAULT_INFECTED). When given, an
+    `infected` is who really turned rogue (from the agent logs, see rogue_agents). When given, an
     agent outside it reaching risk 75+ is a FALSE quarantine and an infected one that never did is a miss.
     Either makes the recording unusable as a demo: it must not show an innocent agent accused.
     """
@@ -139,8 +159,8 @@ def check_run(ticks: list[dict], trigger_tick: int, approve_tick: int | None, in
     flagged = {a["agent_id"] for t in after for a in t["agents"] if a["risk"] >= C.QUARANTINE_AT}
     if len(flagged) < 2:
         bad.append(f"only {sorted(flagged)} reached risk {C.QUARANTINE_AT}+: no spread to show")
-    infected = {r["agent_id"] for t in after for a in t["agents"] for r in a["related_agents"] if r["verdict"] == "likely_infected"}
-    if not infected:
+    seen_infected = {r["agent_id"] for t in after for a in t["agents"] for r in a["related_agents"] if r["verdict"] == "likely_infected"}
+    if not seen_infected:
         bad.append("no related agent was ever likely_infected")
     if infected is not None:
         for aid in sorted(flagged - infected):
@@ -212,15 +232,28 @@ def main() -> None:
     p.add_argument("--approve-after", type=int, default=20, help="seconds after the trigger to click approve")
     p.add_argument("--ticks", type=int, default=60, help="total ticks, one per second")
     p.add_argument("--tick-s", type=float, default=1.0, help="seconds between ticks (leave at 1: the dashboard plays one per second)")
-    p.add_argument("--infected", default=DEFAULT_INFECTED, help="comma list of agents that really turn rogue; others reaching risk 75+ are false quarantines and block the write. 'any' skips this check")
+    p.add_argument("--infected", default="auto", help="who really turns rogue; any other agent reaching risk 75+ is a false quarantine and blocks the write. 'auto' (default) reads the agents' logs; or a comma list; or 'any' to skip the check")
+    p.add_argument("--logs-dir", type=Path, default=None, help="folder of agent *.log files (native runs); default is `docker compose logs`")
+    p.add_argument("--raw-out", type=Path, default=None, help="also save the raw ticks here BEFORE any check, so a failed run is not lost (not for committing)")
     p.add_argument("--out", type=Path, default=DEFAULT_OUT)
     p.add_argument("--dry-run", action="store_true", help="validate but do not write the file")
     args = p.parse_args()
 
+    since_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     ticks, trigger_tick, approve_tick = record(args.api, args.trigger, args.baseline, args.approve_after, args.ticks, args.tick_s)
 
+    if args.raw_out:
+        args.raw_out.write_text(json.dumps({"trigger_tick": trigger_tick, "approve_tick": approve_tick, "ticks": ticks}), encoding="utf-8")
     problems = [f"tick {i}: {m}" for i, t in enumerate(ticks) for m in validate_tick(t)]
-    infected = None if args.infected == "any" else {s.strip() for s in args.infected.split(",") if s.strip()}
+    if args.infected == "any":
+        infected = None
+    elif args.infected == "auto":
+        infected = rogue_agents(read_agent_logs(args.logs_dir, since_iso))
+        if not infected:
+            sys.exit("NOT WRITTEN: no 'turned rogue' lines in the agent logs, so who was infected can't be checked. Pass --logs-dir, --infected a,b,c, or --infected any")
+        print(f"\ninfected per the agent logs: {sorted(infected)}")
+    else:
+        infected = {s.strip() for s in args.infected.split(",") if s.strip()}
     problems += check_run(ticks, trigger_tick, approve_tick, infected)
     if problems:
         print("\nNOT WRITTEN, the recording has problems:", file=sys.stderr)
