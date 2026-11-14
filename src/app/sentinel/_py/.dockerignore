@@ -1,0 +1,7 @@
+# Keep the overseer build context small and reproducible: the image trains its own models.
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+artifacts/

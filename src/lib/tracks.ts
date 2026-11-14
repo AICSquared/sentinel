@@ -4,6 +4,8 @@
 export type Track = { slug: string; name: string; channel: number; ready: boolean };
 
 export const tracks: Track[] = [
+  // This repo builds one track: Sentinel, for Cisco's Mission 3. Board channel #2.
+  { slug: "sentinel", name: "Sentinel (Cisco)", channel: 2, ready: false },
   { slug: "rtx", name: "RTX", channel: 2, ready: false },
   { slug: "cisco", name: "Cisco", channel: 3, ready: false },
   { slug: "amat", name: "Applied Materials", channel: 4, ready: false },

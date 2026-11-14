@@ -51,3 +51,4 @@ scratch/
 # sentinel trained models
 src/app/sentinel/_py/artifacts/
 __pycache__/
+.venv/
