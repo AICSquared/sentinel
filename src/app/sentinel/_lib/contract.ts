@@ -136,6 +136,27 @@ export type FleetSnapshot = {
 
 export type DemoTimeline = { ticks: FleetSnapshot[] };
 
+// --- _data/validation.json (written by _py/validate.py, read by results panel)
+// Percentages are 0-100. Every Range is median + min-max over runs (never a mean).
+
+export type Range = { median: number; min: number; max: number };
+
+export type Validation = {
+  generated: string; // ISO 8601 UTC
+  runs: number; // seeded attack runs per arm (20)
+  clean_runs: number; // runs with no attack (5)
+  detection_rate: number; // % with Sentinel
+  time_to_detect_s: Range;
+  containment_s: Range;
+  spread: { without: Range; with: Range }; // agents compromised at 90 s
+  false_quarantine_rate: { attack_runs: number; clean_runs: number }; // %, reported separately
+  patient_zero_accuracy: number; // %
+  fallback?: { detection_rate: number; time_to_detect_s: Range; false_quarantine_rate: number };
+  per_type?: { attack_type: AttackType; precision: number; recall: number; support: number }[];
+  novel_attack?: { held_out: AttackType; flagged_pct: number };
+  hand_check?: { run_seed: number; matches: boolean; note: string };
+};
+
 // --- Human decision (approve / dismiss) ------------------------------------
 
 export type Decision = "approved" | "dismissed";
