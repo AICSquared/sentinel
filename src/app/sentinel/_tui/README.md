@@ -1,14 +1,10 @@
 # Sentinel ops TUI
 
-A terminal view of the agent swarm and Sentinel, for the team to watch during the demo.
+From this directory, run:
 
-## Run
     python -m pip install -r requirements.txt
-    python monitor.py        # reads ../_data/live_sample.json
+    python monitor.py
 
-Press `q` to quit.
+The monitor polls GET `/agents` every 0.5 seconds. Set `SENTINEL_API_URL` to override the default base URL of `http://localhost:8000`. If a poll fails, the monitor displays **offline · sample** and reads `../_data/live_sample.json`. It reconnects automatically. If the sample also fails, the last display stays visible with an offline notice.
 
-## Data source
-For the demo it reads `../_data/live_sample.json`. To go live, replace the file read in
-`refresh_data()` with an HTTP GET to the FastAPI service (`GET /agents`), keeping the same shape:
-`{ sentinel: {...}, agents: [...], events: [...] }`. It degrades gracefully if the source is down.
+The summary shows patient zero, origin time, related-agent verdicts and containment. Approve or dismiss recommendations in the dashboard. Press `q` to quit.
