@@ -31,7 +31,7 @@ from typing import Any, Callable, Literal, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
 
 log = logging.getLogger("sentinel.api")
 
@@ -40,6 +40,7 @@ DATA_DIR = HERE.parent / "_data"
 TICK_SECONDS = float(os.environ.get("SENTINEL_TICK_S", "2"))
 WINDOW_S = 60.0
 EDGE_WINDOW_S = 300
+TEXT_MAX_CHARS = 2000  # mirrors contract.TEXT_MAX_CHARS (checked by a test)
 
 AttackType = Literal[
     "clean", "prompt_injection", "tool_misuse", "data_exfiltration", "privilege_escalation", "unknown"
@@ -78,6 +79,14 @@ class Event(BaseModel):
     to_agent: Optional[str] = None
     ok: bool = True
     bytes_out: int = Field(default=0, ge=0)
+    # Optional (T1, #22): message or tool-output body for Prompt Guard. Truncated, never rejected for length.
+    # It is passed to the row builder and nowhere else: not logged, not returned by any endpoint.
+    text: Optional[str] = None
+
+    @field_validator("text")
+    @classmethod
+    def _truncate_text(cls, v: Optional[str]) -> Optional[str]:
+        return v[:TEXT_MAX_CHARS] if v is not None else None
 
 
 class FeatureRow(BaseModel):
@@ -96,6 +105,8 @@ class FeatureRow(BaseModel):
     distinct_peers: int
     bytes_out_per_min: float
     sec_since_normal: float
+    # Optional (T1, #22): max Prompt Guard probability over the window's messages. Not a model input.
+    prompt_risk: Optional[float] = Field(default=None, ge=0, le=1)
 
 
 class ScoreRequest(BaseModel):
@@ -112,6 +123,14 @@ class Components(BaseModel):
     supervised: float
     anomaly: float
     fallback: bool
+    prompt: Optional[float] = Field(default=None, ge=0, le=100)  # only present when the row had prompt_risk
+
+    @model_serializer(mode="wrap")
+    def _omit_absent_prompt(self, handler):
+        out = handler(self)
+        if out.get("prompt") is None:
+            out.pop("prompt", None)  # absent, not null: the contract type is `prompt?: number`
+        return out
 
 
 class ScoreResponse(BaseModel):
@@ -142,6 +161,14 @@ class AgentState(BaseModel):
     systems_touched: list[str] = []
     first_flagged_ts: Optional[str] = None
     related_agents: list[Related] = []
+    components: Optional[Components] = None  # optional per-agent score parts (T7); absent in canned data
+
+    @model_serializer(mode="wrap")
+    def _omit_absent_components(self, handler):
+        out = handler(self)
+        if out.get("components") is None:
+            out.pop("components", None)
+        return out
 
 
 class SentinelState(BaseModel):
@@ -525,6 +552,7 @@ class Overseer:
             systems_touched=list(run.touched)[:8],
             first_flagged_ts=iso(run.first_flagged) if run.first_flagged else None,
             related_agents=[Related(**r) for r in related],
+            components=Components(**resp["components"]),
         )
 
     def _log(self, ts: float, text: str) -> None:
@@ -612,7 +640,7 @@ def create_app(
 
     @app.post("/score", response_model=ScoreResponse)
     async def score(req: ScoreRequest) -> dict:
-        row = req.action.model_dump()
+        row = req.action.model_dump(exclude_none=True)  # an absent prompt_risk stays absent for score()
         if fake:
             match = next((a for a in fake_tick().agents if a.agent_id == row["agent_id"]), None)
             if match is None:
