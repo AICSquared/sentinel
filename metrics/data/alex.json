@@ -1,0 +1,1426 @@
+{
+ "who": "alex",
+ "collected_at": "2026-11-17T18:34:36-05:00",
+ "chat": {
+  "session_dir_found": true,
+  "sessions": [
+   {
+    "file": "0c05e08f-3016-4f75-bac2-d249025e4e81.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T19:50:44.220000+00:00",
+    "end": "2026-11-14T19:51:06.485000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3148,
+     "cache_creation_input_tokens": 40433,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1533
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "11247caa-eae6-413b-8859-87cc0f9e160b.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:21:06.411000+00:00",
+    "end": "2026-11-14T08:21:28.995000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3472,
+     "cache_creation_input_tokens": 36083,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1382
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "1e1b1100-7d16-43f9-9390-2f4c561b1b13.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T19:20:26.857000+00:00",
+    "end": "2026-11-14T19:20:51.983000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 2628,
+     "cache_creation_input_tokens": 38803,
+     "cache_read_input_tokens": 23297,
+     "thinking_tokens": 1158
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "201dbf4d-09bc-424f-a7db-c8e0539825a7.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:14:56.413000+00:00",
+    "end": "2026-11-14T08:15:20.222000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3909,
+     "cache_creation_input_tokens": 36093,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1955
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "20e56954-bd81-49c4-9cff-773de785fe6d.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T21:07:13.943000+00:00",
+    "end": "2026-11-14T21:32:36.823000+00:00",
+    "active_minutes": 19.2,
+    "human_prompts": 1,
+    "model_responses": 21,
+    "tool_calls_total": 24,
+    "tool_calls_by_name": {
+     "Bash": 18,
+     "Read": 3,
+     "mcp__ccd_turn__update_plan": 1,
+     "mcp__Claude_Browser__navigate": 1,
+     "mcp__ccd_turn__wrap_up": 1
+    },
+    "tokens": {
+     "input_tokens": 46,
+     "output_tokens": 18256,
+     "cache_creation_input_tokens": 135356,
+     "cache_read_input_tokens": 2978851,
+     "thinking_tokens": 2234
+    },
+    "models": {
+     "claude-sonnet-5-5": 21
+    }
+   },
+   {
+    "file": "25723262-ddc9-4050-91d8-218882e49893.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T09:01:19.592000+00:00",
+    "end": "2026-11-14T09:01:40.952000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3412,
+     "cache_creation_input_tokens": 38318,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1124
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "29925a44-86cf-4da4-8293-da0b57d4cd5a.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:24:49.327000+00:00",
+    "end": "2026-11-14T08:25:17.019000+00:00",
+    "active_minutes": 0.5,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 4888,
+     "cache_creation_input_tokens": 36298,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 2658
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "4ff00ca5-5c6d-47b7-acce-99d0b1cafce3.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T07:01:10.691000+00:00",
+    "end": "2026-11-14T07:01:32.962000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3443,
+     "cache_creation_input_tokens": 40632,
+     "cache_read_input_tokens": 23297,
+     "thinking_tokens": 1382
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "52dff373-4495-4076-bb12-c9dda1f1d7b0.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T03:24:40.810000+00:00",
+    "end": "2026-11-14T06:07:18.174000+00:00",
+    "active_minutes": 119.5,
+    "human_prompts": 6,
+    "model_responses": 173,
+    "tool_calls_total": 212,
+    "tool_calls_by_name": {
+     "Bash": 116,
+     "Edit": 26,
+     "mcp__ccd_turn__update_plan": 22,
+     "Write": 22,
+     "Read": 7,
+     "mcp__Claude_Browser__browser_batch": 7,
+     "mcp__ccd_turn__wrap_up": 6,
+     "ToolSearch": 2,
+     "mcp__ccd_session_mgmt__list_sessions": 1,
+     "AskUserQuestion": 1,
+     "mcp__ccd_session_mgmt__send_message": 1,
+     "mcp__ccd_session__hand_off_to_session": 1
+    },
+    "tokens": {
+     "input_tokens": 402,
+     "output_tokens": 128474,
+     "cache_creation_input_tokens": 272363,
+     "cache_read_input_tokens": 39604329,
+     "thinking_tokens": 29594
+    },
+    "models": {
+     "claude-opus-5-5": 172,
+     "<synthetic>": 1
+    }
+   },
+   {
+    "file": "5c6a0520-54d7-4074-8751-86bb553b5296.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:36:45.837000+00:00",
+    "end": "2026-11-14T08:37:05.785000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3241,
+     "cache_creation_input_tokens": 37029,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1569
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "763385ae-c6f8-4f22-97cf-4b480d095183.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:59:40.348000+00:00",
+    "end": "2026-11-14T08:59:43.055000+00:00",
+    "active_minutes": 0.0,
+    "human_prompts": 1,
+    "model_responses": 0,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {},
+    "models": {}
+   },
+   {
+    "file": "79993343-cd61-4ddf-8ad9-13238b0820e8.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:14:49.166000+00:00",
+    "end": "2026-11-14T08:15:08.353000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3023,
+     "cache_creation_input_tokens": 62107,
+     "cache_read_input_tokens": 0,
+     "thinking_tokens": 1106
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "7fd93bb4-8cd7-42f1-b5d8-ac5489aec5b7.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:59:19.121000+00:00",
+    "end": "2026-11-14T08:59:44.374000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 4118,
+     "cache_creation_input_tokens": 37056,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 2138
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "8bda3f2e-9080-447b-bba2-56cb98f6cebb.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:34:50.543000+00:00",
+    "end": "2026-11-14T08:35:15.396000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 4268,
+     "cache_creation_input_tokens": 36248,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 2302
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "a12ee770-c758-4e0c-843d-38a5d82b2705.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T03:24:40.810000+00:00",
+    "end": "2026-11-17T23:34:35.026000+00:00",
+    "active_minutes": 383.5,
+    "human_prompts": 34,
+    "model_responses": 399,
+    "tool_calls_total": 811,
+    "tool_calls_by_name": {
+     "Bash": 382,
+     "Edit": 116,
+     "Write": 80,
+     "mcp__ccd_turn__update_plan": 64,
+     "Read": 54,
+     "mcp__ccd_turn__wrap_up": 27,
+     "mcp__Claude_Browser__browser_batch": 25,
+     "Artifact": 10,
+     "mcp__Claude_Browser__find": 9,
+     "AskUserQuestion": 6,
+     "SendMessage": 6,
+     "mcp__Claude_Browser__computer": 5,
+     "mcp__Claude_Browser__javascript_tool": 5,
+     "ToolSearch": 3,
+     "SendUserFile": 3,
+     "mcp__Claude_Browser__navigate": 3,
+     "mcp__Claude_Browser__get_page_text": 3,
+     "mcp__Claude_Browser__resize_window": 2,
+     "mcp__ccd_session_mgmt__list_sessions": 1,
+     "mcp__ccd_session_mgmt__send_message": 1,
+     "mcp__ccd_session__hand_off_to_session": 1,
+     "mcp__ccd_session_mgmt__get_session": 1,
+     "mcp__Claude_Browser__read_page": 1,
+     "computer": 1,
+     "Skill": 1,
+     "Grep": 1
+    },
+    "tokens": {
+     "input_tokens": 904,
+     "output_tokens": 401742,
+     "cache_creation_input_tokens": 1068319,
+     "cache_read_input_tokens": 229397435,
+     "thinking_tokens": 105077
+    },
+    "models": {
+     "claude-opus-5-5": 399
+    }
+   },
+   {
+    "file": "b4a11950-8ffc-441c-b957-287dac15b4e5.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:37:39.254000+00:00",
+    "end": "2026-11-14T08:37:57.185000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 2982,
+     "cache_creation_input_tokens": 38000,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 867
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "c8988373-7d52-4bfe-8074-bcc719a44800.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:17:17.627000+00:00",
+    "end": "2026-11-14T08:17:33.574000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 2279,
+     "cache_creation_input_tokens": 37266,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 547
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "cb79e0cb-afa8-48d1-aca7-5481f2f8c396.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T20:30:01.410000+00:00",
+    "end": "2026-11-14T20:30:25.090000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3582,
+     "cache_creation_input_tokens": 37624,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1857
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "cc744c1f-611a-4483-925d-e708cf9d0e6e.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T09:49:57.538000+00:00",
+    "end": "2026-11-14T09:50:17.081000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 2990,
+     "cache_creation_input_tokens": 38399,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 961
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "ccf06b2b-7933-4263-ac5d-49af3cd7707c.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T09:57:06.762000+00:00",
+    "end": "2026-11-14T09:57:22.410000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 2474,
+     "cache_creation_input_tokens": 38327,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 598
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "cead08fb-989a-4eca-8729-6cd21182c8b0.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T09:54:39.870000+00:00",
+    "end": "2026-11-14T09:54:57.154000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 2760,
+     "cache_creation_input_tokens": 38348,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 617
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "d03dc753-5d88-43ea-8473-c871a88def46.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:15:12.509000+00:00",
+    "end": "2026-11-14T08:15:30.731000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 2586,
+     "cache_creation_input_tokens": 37092,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 790
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "d80fa79a-6c8b-4cf7-bfbd-b3671589991f.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T21:27:29.621000+00:00",
+    "end": "2026-11-14T21:28:01.021000+00:00",
+    "active_minutes": 0.5,
+    "human_prompts": 0,
+    "model_responses": 8,
+    "tool_calls_total": 9,
+    "tool_calls_by_name": {
+     "Bash": 5,
+     "Write": 2,
+     "mcp__ccd_turn__update_plan": 1,
+     "mcp__ccd_turn__wrap_up": 1
+    },
+    "tokens": {
+     "input_tokens": 16,
+     "output_tokens": 2289,
+     "cache_creation_input_tokens": 55807,
+     "cache_read_input_tokens": 818025,
+     "thinking_tokens": 297
+    },
+    "models": {
+     "claude-sonnet-5-5": 8
+    }
+   },
+   {
+    "file": "f09268f2-b776-4eee-a322-4041ac79690c.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:38:28.325000+00:00",
+    "end": "2026-11-14T08:38:45.703000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 2890,
+     "cache_creation_input_tokens": 38107,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 679
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "f1050ce6-b0fb-4315-a148-4469abf72185.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T09:34:14.869000+00:00",
+    "end": "2026-11-14T09:34:35.980000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3321,
+     "cache_creation_input_tokens": 36603,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1302
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "fa756f1b-69a9-4849-b1cf-d29b54622f76.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T09:00:17.047000+00:00",
+    "end": "2026-11-14T09:00:39.937000+00:00",
+    "active_minutes": 0.4,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3424,
+     "cache_creation_input_tokens": 38221,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1144
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "e7d311d9-a3da-4cad-a18d-5e3413a91fa7.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T03:49:19.370000+00:00",
+    "end": "2026-11-14T04:12:10.295000+00:00",
+    "active_minutes": 22.8,
+    "human_prompts": 2,
+    "model_responses": 48,
+    "tool_calls_total": 52,
+    "tool_calls_by_name": {
+     "Bash": 37,
+     "Write": 5,
+     "mcp__ccd_turn__wrap_up": 4,
+     "mcp__ccd_turn__update_plan": 3,
+     "Edit": 1,
+     "ToolSearch": 1,
+     "SendMessage": 1
+    },
+    "tokens": {
+     "input_tokens": 106,
+     "output_tokens": 35930,
+     "cache_creation_input_tokens": 118292,
+     "cache_read_input_tokens": 6818975,
+     "thinking_tokens": 5743
+    },
+    "models": {
+     "claude-opus-5-5": 48
+    }
+   },
+   {
+    "file": "5df45d2a-6ef5-49e5-8f41-2ecb94eab6f5.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T18:15:25.197000+00:00",
+    "end": "2026-11-14T21:32:37.007000+00:00",
+    "active_minutes": 59.2,
+    "human_prompts": 9,
+    "model_responses": 77,
+    "tool_calls_total": 92,
+    "tool_calls_by_name": {
+     "Bash": 53,
+     "mcp__ccd_turn__update_plan": 16,
+     "Write": 8,
+     "mcp__ccd_turn__wrap_up": 8,
+     "mcp__Claude_Browser__browser_batch": 3,
+     "Read": 2,
+     "Edit": 2
+    },
+    "tokens": {
+     "input_tokens": 178,
+     "output_tokens": 51098,
+     "cache_creation_input_tokens": 149843,
+     "cache_read_input_tokens": 12686825,
+     "thinking_tokens": 17147
+    },
+    "models": {
+     "claude-opus-5-5": 77
+    }
+   },
+   {
+    "file": "e6ed3ca7-cc03-4cb4-88d0-23b267431d8f.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:17:25.418000+00:00",
+    "end": "2026-11-14T21:32:36.997000+00:00",
+    "active_minutes": 37.1,
+    "human_prompts": 4,
+    "model_responses": 26,
+    "tool_calls_total": 22,
+    "tool_calls_by_name": {
+     "Bash": 19,
+     "mcp__ccd_turn__update_plan": 1,
+     "mcp__Claude_Browser__preview_start": 1,
+     "mcp__ccd_turn__wrap_up": 1
+    },
+    "tokens": {
+     "input_tokens": 60,
+     "output_tokens": 19193,
+     "cache_creation_input_tokens": 109003,
+     "cache_read_input_tokens": 3560250,
+     "thinking_tokens": 2191
+    },
+    "models": {
+     "claude-sonnet-5-5": 26
+    }
+   },
+   {
+    "file": "7826f03a-0153-44b3-b93f-911adf358d40.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T17:41:23.923000+00:00",
+    "end": "2026-11-14T21:32:37.013000+00:00",
+    "active_minutes": 55.1,
+    "human_prompts": 3,
+    "model_responses": 58,
+    "tool_calls_total": 100,
+    "tool_calls_by_name": {
+     "Bash": 47,
+     "Write": 27,
+     "Read": 16,
+     "mcp__ccd_turn__update_plan": 5,
+     "WebSearch": 2,
+     "ToolSearch": 1,
+     "Edit": 1,
+     "mcp__ccd_turn__wrap_up": 1
+    },
+    "tokens": {
+     "input_tokens": 118,
+     "output_tokens": 117073,
+     "cache_creation_input_tokens": 389334,
+     "cache_read_input_tokens": 15222599,
+     "thinking_tokens": 23625
+    },
+    "models": {
+     "claude-fable-5-2": 57,
+     "<synthetic>": 1
+    }
+   },
+   {
+    "file": "07530ed3-f640-48d5-a7fc-f9ef2a79366b.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T21:16:02.081000+00:00",
+    "end": "2026-11-14T21:24:12.148000+00:00",
+    "active_minutes": 8.2,
+    "human_prompts": 2,
+    "model_responses": 43,
+    "tool_calls_total": 50,
+    "tool_calls_by_name": {
+     "Bash": 22,
+     "mcp__ccd_turn__update_plan": 9,
+     "Edit": 8,
+     "mcp__ccd_turn__wrap_up": 4,
+     "Write": 4,
+     "Read": 3
+    },
+    "tokens": {
+     "input_tokens": 98,
+     "output_tokens": 23756,
+     "cache_creation_input_tokens": 85781,
+     "cache_read_input_tokens": 5400579,
+     "thinking_tokens": 5645
+    },
+    "models": {
+     "claude-opus-5-5": 43
+    }
+   },
+   {
+    "file": "85db2b09-28b3-4677-a5d9-d95ed709b0e5.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T16:13:49.614000+00:00",
+    "end": "2026-11-14T16:23:17.572000+00:00",
+    "active_minutes": 9.5,
+    "human_prompts": 0,
+    "model_responses": 39,
+    "tool_calls_total": 42,
+    "tool_calls_by_name": {
+     "Bash": 31,
+     "Read": 5,
+     "Write": 4,
+     "mcp__ccd_turn__update_plan": 2
+    },
+    "tokens": {
+     "input_tokens": 78,
+     "output_tokens": 48409,
+     "cache_creation_input_tokens": 144212,
+     "cache_read_input_tokens": 5934780,
+     "thinking_tokens": 13768
+    },
+    "models": {
+     "claude-opus-5-5": 39
+    }
+   },
+   {
+    "file": "66bb32a8-6c9d-4100-b153-a8f54755aca5.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T18:23:38.769000+00:00",
+    "end": "2026-11-14T18:56:46.725000+00:00",
+    "active_minutes": 33.1,
+    "human_prompts": 1,
+    "model_responses": 52,
+    "tool_calls_total": 66,
+    "tool_calls_by_name": {
+     "Bash": 30,
+     "Read": 11,
+     "Write": 9,
+     "mcp__ccd_turn__update_plan": 8,
+     "SendUserFile": 3,
+     "mcp__ccd_turn__wrap_up": 3,
+     "Edit": 2
+    },
+    "tokens": {
+     "input_tokens": 108,
+     "output_tokens": 101506,
+     "cache_creation_input_tokens": 214817,
+     "cache_read_input_tokens": 9820335,
+     "thinking_tokens": 19890
+    },
+    "models": {
+     "claude-opus-5-5": 52
+    }
+   },
+   {
+    "file": "84ec5a71-e4fb-487c-8a39-908aab8293b1.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T18:23:38.769000+00:00",
+    "end": "2026-11-14T18:56:46.725000+00:00",
+    "active_minutes": 33.1,
+    "human_prompts": 0,
+    "model_responses": 0,
+    "tool_calls_total": 66,
+    "tool_calls_by_name": {
+     "Bash": 30,
+     "Read": 11,
+     "Write": 9,
+     "mcp__ccd_turn__update_plan": 8,
+     "SendUserFile": 3,
+     "mcp__ccd_turn__wrap_up": 3,
+     "Edit": 2
+    },
+    "tokens": {},
+    "models": {}
+   },
+   {
+    "file": "37e817b2-d9d5-44b9-b9ba-30a14fdb816d.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T15:59:13.318000+00:00",
+    "end": "2026-11-14T16:04:08.251000+00:00",
+    "active_minutes": 4.9,
+    "human_prompts": 1,
+    "model_responses": 17,
+    "tool_calls_total": 24,
+    "tool_calls_by_name": {
+     "Bash": 7,
+     "mcp__ccd_turn__update_plan": 6,
+     "mcp__Claude_Browser__browser_batch": 5,
+     "Write": 2,
+     "mcp__ccd_turn__wrap_up": 2,
+     "mcp__Claude_Browser__preview_start": 1,
+     "mcp__Claude_Browser__resize_window": 1
+    },
+    "tokens": {
+     "input_tokens": 36,
+     "output_tokens": 5767,
+     "cache_creation_input_tokens": 73318,
+     "cache_read_input_tokens": 1814100,
+     "thinking_tokens": 893
+    },
+    "models": {
+     "claude-opus-5-5": 17
+    }
+   },
+   {
+    "file": "02b79e33-a1fd-4c9d-937a-43f5166b198a.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:55:15.222000+00:00",
+    "end": "2026-11-14T08:55:36.111000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3925,
+     "cache_creation_input_tokens": 38514,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1622
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   },
+   {
+    "file": "716f0f43-0bfb-4a8b-8f36-e512f406b0f6.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:40:25.442000+00:00",
+    "end": "2026-11-14T08:40:28.676000+00:00",
+    "active_minutes": 0.1,
+    "human_prompts": 1,
+    "model_responses": 0,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {},
+    "models": {}
+   },
+   {
+    "file": "bfb57f5a-eb96-4ef0-9294-1783e287a060.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T06:45:03.069000+00:00",
+    "end": "2026-11-14T08:40:20.777000+00:00",
+    "active_minutes": 49.2,
+    "human_prompts": 3,
+    "model_responses": 85,
+    "tool_calls_total": 104,
+    "tool_calls_by_name": {
+     "Bash": 45,
+     "Read": 22,
+     "mcp__ccd_turn__wrap_up": 8,
+     "SendUserFile": 7,
+     "Write": 4,
+     "SendMessage": 4,
+     "mcp__ccd_turn__update_plan": 3,
+     "Edit": 3,
+     "mcp__Claude_Browser__browser_batch": 2,
+     "mcp__Claude_Browser__resize_window": 1,
+     "ListAgents": 1,
+     "AskUserQuestion": 1,
+     "ToolSearch": 1,
+     "mcp__Claude_Browser__navigate": 1,
+     "mcp__Claude_Browser__computer": 1
+    },
+    "tokens": {
+     "input_tokens": 190,
+     "output_tokens": 125017,
+     "cache_creation_input_tokens": 492832,
+     "cache_read_input_tokens": 18761346,
+     "thinking_tokens": 28089
+    },
+    "models": {
+     "claude-opus-5-5": 28,
+     "claude-sonnet-5-5": 56,
+     "<synthetic>": 1
+    }
+   },
+   {
+    "file": "e2ec34e7-b7b9-48a4-9555-b0dc682dc752.jsonl",
+    "kind": "main",
+    "start": "2026-11-14T08:47:31.082000+00:00",
+    "end": "2026-11-14T08:47:51.305000+00:00",
+    "active_minutes": 0.3,
+    "human_prompts": 1,
+    "model_responses": 1,
+    "tool_calls_total": 0,
+    "tool_calls_by_name": {},
+    "tokens": {
+     "input_tokens": 2,
+     "output_tokens": 3237,
+     "cache_creation_input_tokens": 38617,
+     "cache_read_input_tokens": 26009,
+     "thinking_tokens": 1383
+    },
+    "models": {
+     "claude-haiku-5-5": 1
+    }
+   }
+  ],
+  "totals": {
+   "input_tokens": 2386,
+   "output_tokens": 1154510,
+   "cache_creation_input_tokens": 4203495,
+   "cache_read_input_tokens": 353385203,
+   "thinking_tokens": 284867,
+   "human_prompts": 91,
+   "model_responses": 1069,
+   "tool_calls": 1674
+  }
+ },
+ "git": {
+  "commits": 110,
+  "per_author": {
+   "Alex Williams": {
+    "commits": 54,
+    "code_docs_added": 35075,
+    "code_docs_removed": 1798
+   },
+   "Brandon Townsend": {
+    "commits": 8,
+    "code_docs_added": 12925,
+    "code_docs_removed": 24
+   },
+   "Stephen-UO": {
+    "commits": 28,
+    "code_docs_added": 83408,
+    "code_docs_removed": 24550
+   },
+   "Brandon T": {
+    "commits": 4,
+    "code_docs_added": 2324,
+    "code_docs_removed": 84
+   },
+   "KG8-Projects": {
+    "commits": 16,
+    "code_docs_added": 5408,
+    "code_docs_removed": 70,
+    "log_data_added": 3980,
+    "log_data_removed": 1984
+   }
+  },
+  "per_folder": {
+   "tools": {
+    "code_docs_added": 551
+   },
+   "docs": {
+    "code_docs_added": 1813
+   },
+   ".claude": {
+    "code_docs_added": 190
+   },
+   "src": {
+    "code_docs_added": 118923,
+    "log_data_added": 3980
+   },
+   "(root)": {
+    "code_docs_added": 4982
+   },
+   ".github": {
+    "code_docs_added": 49
+   },
+   "floorplan": {
+    "code_docs_added": 11401
+   },
+   "docker": {
+    "code_docs_added": 1146
+   },
+   "supabase": {
+    "code_docs_added": 85
+   }
+  },
+  "first_commit": "2026-11-13T22:06:04-05:00",
+  "last_commit": "2026-11-14T14:27:03-05:00",
+  "note": "notebook_json lines are generated notebook files; code_docs is hand/agent-written source and docs"
+ },
+ "board": {
+  "posts": 227,
+  "by_agent": {
+   "Brandon's Claude": 71,
+   "Alex's Claude": 63,
+   "Noah's Claude": 26,
+   "Alex's Human": 3,
+   "Stephens's claude": 1,
+   "Stephen's Claude": 53,
+   "Alex's Codex": 10
+  },
+  "labels": {
+   "mentions": 127,
+   "ACK": 51,
+   "STATUS": 86,
+   "OFFLINE": 5,
+   "DONE": 34,
+   "BLOCKED": 1
+  },
+  "by_channel": {
+   "1": 10,
+   "2": 217
+  },
+  "first_post": "2026-11-14T03:27:31Z",
+  "last_post": "2026-11-14T19:23:34Z"
+ },
+ "tasks": {
+  "prs": 42,
+  "issues": 30,
+  "tasks": [
+   {
+    "pr": 72,
+    "title": "sentinel: tools/demo starts Docker when it isn't running",
+    "author": "alexwilldev",
+    "merged": false,
+    "additions": 16,
+    "deletions": 2,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 71,
+    "title": "sentinel: tools/demo to start the live demo and trigger the rogue agent",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 108,
+    "deletions": 0,
+    "minutes_issue_to_merge": 0.5
+   },
+   {
+    "pr": 70,
+    "title": "docs: pitch deck v2",
+    "author": "btowns1041",
+    "merged": false,
+    "additions": 4,
+    "deletions": 4,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 69,
+    "title": "sentinel: audit fix delegation plan (docs only)",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 60,
+    "deletions": 0,
+    "minutes_issue_to_merge": 62.0
+   },
+   {
+    "pr": 68,
+    "title": "sentinel: pre-submission audit, fix instructions, study guides and pitch materials (docs only)",
+    "author": "alexwilldev",
+    "merged": false,
+    "additions": 1201,
+    "deletions": 0,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 67,
+    "title": "sentinel: pitch deck (PDF + PPTX)",
+    "author": "btowns1041",
+    "merged": true,
+    "additions": 27,
+    "deletions": 0,
+    "minutes_issue_to_merge": 1.3
+   },
+   {
+    "pr": 66,
+    "title": "sentinel: L3 Cloud light colour scheme",
+    "author": "Stvn-nn",
+    "merged": false,
+    "additions": 36,
+    "deletions": 34,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 64,
+    "title": "sentinel: scroll-driven incident flow on the home page",
+    "author": "Stvn-nn",
+    "merged": false,
+    "additions": 637,
+    "deletions": 196,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 62,
+    "title": "sentinel: floor plan (clickable map of the codebase)",
+    "author": "btowns1041",
+    "merged": false,
+    "additions": 11401,
+    "deletions": 0,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 61,
+    "title": "sentinel: explorer agent motion on the GPU, tier changes fade (#59)",
+    "author": "Stvn-nn",
+    "merged": true,
+    "additions": 20,
+    "deletions": 7,
+    "minutes_issue_to_merge": 488.4
+   },
+   {
+    "pr": 60,
+    "title": "sentinel: fit the site's drawings to the recording and refine the agent motion (#59, stacked on #57)",
+    "author": "Stvn-nn",
+    "merged": false,
+    "additions": 32186,
+    "deletions": 4452,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 58,
+    "title": "sentinel: Prompt Guard in the overseer image + real InjecAgent payloads",
+    "author": "KG8-Projects",
+    "merged": true,
+    "additions": 63,
+    "deletions": 10,
+    "minutes_issue_to_merge": 65.6
+   },
+   {
+    "pr": 57,
+    "title": "sentinel: public site (dark): scroll-told home, how it works, explorer restyle",
+    "author": "alexwilldev",
+    "merged": false,
+    "additions": 845,
+    "deletions": 33,
+    "minutes_issue_to_merge": null
+   },
+   {
+    "pr": 56,
+    "title": "sentinel: undo terminate forgets the old window; scatter labels select their agent (#53 follow-up)",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 51,
+    "deletions": 5,
+    "minutes_issue_to_merge": 62.9
+   },
+   {
+    "pr": 55,
+    "title": "sentinel: per-agent quarantine/terminate/release from the dashboard (#53, rest of PR #54)",
+    "author": "btowns1041",
+    "merged": true,
+    "additions": 918,
+    "deletions": 86,
+    "minutes_issue_to_merge": 28.4
+   },
+   {
+    "pr": 54,
+    "title": "sentinel: per-agent quarantine / terminate / release, agent task + evidence (#53)",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 111,
+    "deletions": 19,
+    "minutes_issue_to_merge": 8.3
+   },
+   {
+    "pr": 52,
+    "title": "sentinel: re-open containment for agents flagged after a decision",
+    "author": "Stvn-nn",
+    "merged": true,
+    "additions": 43,
+    "deletions": 0,
+    "minutes_issue_to_merge": 39.7
+   },
+   {
+    "pr": 51,
+    "title": "sentinel: repo README",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 116,
+    "deletions": 34,
+    "minutes_issue_to_merge": 4.8
+   },
+   {
+    "pr": 50,
+    "title": "sentinel: recorded demo timeline",
+    "author": "Stvn-nn",
+    "merged": true,
+    "additions": 31790,
+    "deletions": 4365,
+    "minutes_issue_to_merge": 94.3
+   },
+   {
+    "pr": 49,
+    "title": "sentinel: swarm traffic matches the training data (false-quarantine + mislabel fix)",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 23,
+    "deletions": 11,
+    "minutes_issue_to_merge": 6.8
+   },
+   {
+    "pr": 48,
+    "title": "sentinel: record the confirmed dataset licences",
+    "author": "KG8-Projects",
+    "merged": true,
+    "additions": 15,
+    "deletions": 9,
+    "minutes_issue_to_merge": 88.3
+   },
+   {
+    "pr": 46,
+    "title": "sentinel: Sentinel-only dark portal + live page keeps retrying the overseer",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 52,
+    "deletions": 588,
+    "minutes_issue_to_merge": 4.5
+   },
+   {
+    "pr": 45,
+    "title": "sentinel: privilege escalation looks like repeated denied auth (HOLD until after video)",
+    "author": "KG8-Projects",
+    "merged": true,
+    "additions": 1015,
+    "deletions": 1003,
+    "minutes_issue_to_merge": 80.8
+   },
+   {
+    "pr": 44,
+    "title": "sentinel: features.py computes prompt_risk per window (HOLD until after video)",
+    "author": "KG8-Projects",
+    "merged": true,
+    "additions": 158,
+    "deletions": 5,
+    "minutes_issue_to_merge": 83.4
+   },
+   {
+    "pr": 43,
+    "title": "sentinel: Prompt Guard, real-data prompt-injection classifier (HOLD until after video)",
+    "author": "KG8-Projects",
+    "merged": true,
+    "additions": 477,
+    "deletions": 0,
+    "minutes_issue_to_merge": 83.2
+   },
+   {
+    "pr": 42,
+    "title": "sentinel: live demo hardening",
+    "author": "Stvn-nn",
+    "merged": true,
+    "additions": 229,
+    "deletions": 10,
+    "minutes_issue_to_merge": 23.4
+   },
+   {
+    "pr": 41,
+    "title": "sentinel: fetch scripts for the real datasets (HOLD until after video)",
+    "author": "KG8-Projects",
+    "merged": true,
+    "additions": 896,
+    "deletions": 0,
+    "minutes_issue_to_merge": 83.0
+   },
+   {
+    "pr": 40,
+    "title": "sentinel: loop fixes \u2014 decision sync, action label, spread cap",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 34,
+    "deletions": 10,
+    "minutes_issue_to_merge": 7.0
+   },
+   {
+    "pr": 38,
+    "title": "sentinel: 8-agent swarm + trigger.sh / quarantine.sh / reset.sh",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 370,
+    "deletions": 2,
+    "minutes_issue_to_merge": 43.6
+   },
+   {
+    "pr": 37,
+    "title": "sentinel: api accepts text, prompt_risk, components.prompt (#28 part 1)",
+    "author": "Stvn-nn",
+    "merged": true,
+    "additions": 112,
+    "deletions": 3,
+    "minutes_issue_to_merge": 31.5
+   },
+   {
+    "pr": 36,
+    "title": "sentinel: optional agents[].components, top_features, validation source (#22 follow-up)",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 31,
+    "deletions": 1,
+    "minutes_issue_to_merge": 31.2
+   },
+   {
+    "pr": 34,
+    "title": "sentinel: T1 contract additions for Prompt Guard (text, prompt_risk, components.prompt)",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 33,
+    "deletions": 2,
+    "minutes_issue_to_merge": 25.1
+   },
+   {
+    "pr": 33,
+    "title": "sentinel: fuse Prompt Guard prompt_risk into score.py",
+    "author": "btowns1041",
+    "merged": true,
+    "additions": 202,
+    "deletions": 17,
+    "minutes_issue_to_merge": 25.3
+   },
+   {
+    "pr": 20,
+    "title": "sentinel: origin_ts is the first bad action, not the first event in the window",
+    "author": "Stvn-nn",
+    "merged": true,
+    "additions": 31,
+    "deletions": 2,
+    "minutes_issue_to_merge": 50.9
+   },
+   {
+    "pr": 19,
+    "title": "sentinel: overseer image + live page wiring + human-gated response",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 516,
+    "deletions": 0,
+    "minutes_issue_to_merge": 175.3
+   },
+   {
+    "pr": 17,
+    "title": "sentinel: dataset + features + supervised XGBoost",
+    "author": "KG8-Projects",
+    "merged": true,
+    "additions": 2070,
+    "deletions": 0,
+    "minutes_issue_to_merge": 81.2
+   },
+   {
+    "pr": 16,
+    "title": "sentinel: document the ops TUI demo",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 24,
+    "deletions": 0,
+    "minutes_issue_to_merge": 101.8
+   },
+   {
+    "pr": 15,
+    "title": "sentinel: ops TUI",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 80,
+    "deletions": 49,
+    "minutes_issue_to_merge": 73.9
+   },
+   {
+    "pr": 14,
+    "title": "sentinel: IsoForest x2 + risk scoring + relationship graph",
+    "author": "btowns1041",
+    "merged": true,
+    "additions": 1288,
+    "deletions": 0,
+    "minutes_issue_to_merge": 54.2
+   },
+   {
+    "pr": 13,
+    "title": "sentinel: dashboard components (scatter, patient zero, related agents, approve)",
+    "author": "Stvn-nn",
+    "merged": true,
+    "additions": 413,
+    "deletions": 0,
+    "minutes_issue_to_merge": 41.5
+   },
+   {
+    "pr": 12,
+    "title": "sentinel: C1 contracts in code (contract.py, contract.ts) + B2 demo data",
+    "author": "alexwilldev",
+    "merged": true,
+    "additions": 10814,
+    "deletions": 9,
+    "minutes_issue_to_merge": 41.4
+   },
+   {
+    "pr": 11,
+    "title": "sentinel: FastAPI /events /score /agents with fake mode",
+    "author": "Stvn-nn",
+    "merged": true,
+    "additions": 885,
+    "deletions": 0,
+    "minutes_issue_to_merge": 41.4
+   }
+  ]
+ }
+}
