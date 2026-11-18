@@ -1,0 +1,559 @@
+<title>Sentinel Hackathon AI Report</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: one reading column (an incident-style lab report) with full-width figure panels; data in mono, prose in sans. */
+:root {
+  --bg: #f5f6f8;
+  --panel: #ffffff;
+  --ink: #12161c;
+  --ink-2: #48505c;
+  --ink-3: #5a6370;
+  --rule: #d8dde3;
+  --accent: #b4372c;          /* Sentinel's alert red: section marks and the human-decision line */
+  --accent-soft: #f7e4e1;
+  --alex: #2a78d6;            /* categorical slot 1 */
+  --stephen: #eb6834;         /* slot 2 */
+  --noah: #1baf7a;            /* slot 3 */
+  --brandon: #eda100;         /* slot 4 */
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1116; --panel: #161a21; --ink: #e6e8eb; --ink-2: #b4bac3; --ink-3: #8f96a1; --rule: #2a303b;
+    --accent: #f0716a; --accent-soft: #3d1815; --alex: #3987e5; --stephen: #d95926; --noah: #199e70; --brandon: #c98500; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1116; --panel: #161a21; --ink: #e6e8eb; --ink-2: #b4bac3; --ink-3: #8f96a1; --rule: #2a303b;
+  --accent: #f0716a; --accent-soft: #3d1815; --alex: #3987e5; --stephen: #d95926; --noah: #199e70; --brandon: #c98500; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3.1rem); font-weight: 700; letter-spacing: -0.01em; margin-top: 8px; }
+h2 { font-size: 1.65rem; font-weight: 600; margin-top: 64px; padding-top: 18px; border-top: 2px solid var(--ink); display: flex; gap: 14px; align-items: baseline; }
+h2 .sec { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); font-weight: 500; }
+h3 { font-size: 1.15rem; font-weight: 600; margin-top: 32px; }
+p { margin: 12px 0; }
+a { color: var(--accent); }
+a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font-family: var(--mono); font-size: 0.86em; }
+.eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.lede { font-size: 1.12rem; color: var(--ink-2); max-width: 68ch; margin-top: 16px; }
+.byline { margin-top: 18px; font-size: 0.92rem; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.who { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+.dot.alex { background: var(--alex); } .dot.stephen { background: var(--stephen); } .dot.noah { background: var(--noah); } .dot.brandon { background: var(--brandon); }
+
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 32px; }
+.kpi { background: var(--panel); padding: 16px 18px; min-width: 0; }
+.kpi .n { font-family: var(--display); font-weight: 700; font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kpi .l { font-size: 0.86rem; color: var(--ink-2); }
+.kpi .s { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-3); margin-top: 4px; }
+.kpi.pending .n { color: var(--accent); }
+@media (max-width: 720px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.panel { background: var(--panel); border: 1px solid var(--rule); padding: 20px; margin-top: 20px; min-width: 0; }
+.figcap { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-3); margin-bottom: 4px; letter-spacing: 0.02em; }
+.figtitle { font-family: var(--display); font-weight: 600; font-size: 1.05rem; margin: 0; }
+.note { font-size: 0.9rem; color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.86rem; color: var(--ink-2); margin: 10px 0 4px; }
+
+.mods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+@media (max-width: 720px) { .mods { grid-template-columns: 1fr; } }
+.mod { background: var(--panel); border: 1px solid var(--rule); padding: 16px 18px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.mod .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.mod .owner { font-size: 0.82rem; color: var(--ink-3); display: flex; gap: 10px; flex-wrap: wrap; }
+.mod .path { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-3); }
+.mod h3 { margin: 0; font-size: 1.08rem; }
+.mod .metric { font-family: var(--mono); font-size: 0.8rem; color: var(--ink); background: var(--bg); padding: 4px 8px; align-self: flex-start; }
+.mod ul { margin: 4px 0 0; padding-left: 18px; font-size: 0.92rem; color: var(--ink-2); }
+.mod li { margin: 2px 0; }
+
+.tablewrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--rule); background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--mono); font-weight: 500; font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); background: var(--bg); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.84rem; }
+td.t { font-family: var(--mono); font-size: 0.82rem; white-space: nowrap; color: var(--accent); }
+tr:last-child td { border-bottom: 0; }
+
+.tl { list-style: none; padding: 0; margin: 20px 0 0; border-left: 2px solid var(--rule); }
+.tl li { position: relative; padding: 0 0 14px 22px; }
+.tl li::before { content: ""; position: absolute; left: -7px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); border: 2px solid var(--ink-3); }
+.tl li.m::before { background: var(--accent); border-color: var(--accent); }
+.tl .t { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-3); margin-right: 8px; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+@media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
+.split ul { padding-left: 18px; margin: 8px 0 0; } .split li { margin: 6px 0; font-size: 0.94rem; color: var(--ink-2); }
+.lessons { padding: 0; list-style: none; counter-reset: l; }
+.lessons li { counter-increment: l; padding: 14px 0 14px 44px; border-bottom: 1px solid var(--rule); position: relative; color: var(--ink-2); }
+.lessons li::before { content: counter(l, decimal-leading-zero); position: absolute; left: 0; top: 15px; font-family: var(--mono); color: var(--accent); font-size: 0.86rem; }
+.lessons b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; display: block; color: var(--ink); }
+.callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; margin-top: 16px; font-size: 0.94rem; }
+.placeholder { font-family: var(--mono); color: var(--accent); }
+.caveats { padding-left: 18px; } .caveats li { margin: 8px 0; color: var(--ink-2); } .caveats b { color: var(--ink); }
+
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--ink-2); }
+.chart .lab { fill: var(--ink); }
+.chart .grid { stroke: var(--rule); stroke-width: 1; }
+.chart .hit { fill: transparent; outline: none; }
+.chart .hit:focus-visible { stroke: var(--accent); stroke-width: 1.5; }
+.small-multiples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; margin-top: 12px; }
+@media (max-width: 720px) { .small-multiples { grid-template-columns: 1fr; } }
+.sm h4 { margin: 0 0 6px; font: 600 0.92rem var(--display); }
+#tip { position: fixed; pointer-events: none; z-index: 20; background: var(--panel); color: var(--ink); border: 1px solid var(--rule);
+  padding: 8px 10px; font: 12px/1.45 var(--mono); box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-width: 260px; }
+details { margin-top: 10px; } summary { cursor: pointer; font-size: 0.86rem; color: var(--ink-2); min-height: 32px; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 0.86rem; color: var(--ink-3); }
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">AI project report · HackNCAT Mission 3, Cisco track · November 13–14, 2026</p>
+  <h1>Four people, five agents, one overseer for AI agents</h1>
+  <p class="lede">Alex Williams, Brandon Townsend, Noah and Stephen each worked with their own coding agent. Alex also ran OpenAI's Codex on one task. The five agents coordinated through two GitHub issues used as a message board. In about 16 hours, from 22:06 local time on November 13 to the next afternoon, they built <b>Sentinel</b>. Sentinel watches a team of AI agents, scores each one from 0 to 100 for risk, finds the first agent that turned (patient zero) and traces who it messaged. It recommends quarantine or termination, and a person decides. This report treats the event itself as the AI project: how the work was split, what the agents did, where they went wrong and what the numbers say.</p>
+  <div class="byline">
+    <span class="who"><span class="dot alex"></span>Alex Williams + Alex's Claude (and Alex's Codex)</span>
+    <span class="who"><span class="dot stephen"></span>Stephen + Stephen's Claude</span>
+    <span class="who"><span class="dot noah"></span>Noah + Noah's Claude</span>
+    <span class="who"><span class="dot brandon"></span>Brandon Townsend + Brandon's Claude</span>
+  </div>
+  <p class="byline">Repo: <a href="https://github.com/AICSquared/sentinel">AICSquared/sentinel</a></p>
+</header>
+
+<section class="kpis" aria-label="Headline numbers">
+  <div class="kpi pending"><div class="n">[result]</div><div class="l">placing (add when announced)</div></div>
+  <div class="kpi"><div class="n">34 / 42</div><div class="l">pull requests merged</div><div class="s">median 12 min, open to merge</div></div>
+  <div class="kpi"><div class="n">227</div><div class="l">board posts between agents</div><div class="s">5 agents, plus 3 by Alex</div></div>
+  <div class="kpi"><div class="n">143</div><div class="l">Python tests passing on main</div><div class="s">plus pnpm check and build</div></div>
+  <div class="kpi"><div class="n">107/107</div><div class="l">attack windows flagged</div><div class="s">synthetic, held out by run</div></div>
+  <div class="kpi"><div class="n">0/151</div><div class="l">clean windows wrongly quarantined</div><div class="s">synthetic, held out by run</div></div>
+  <div class="kpi"><div class="n">1,323</div><div class="l">tool calls by Alex's Claude</div><div class="s">86 prompts, 32 sessions</div></div>
+  <div class="kpi"><div class="n">8.8 h</div><div class="l">active time, Alex's Claude</div><div class="s">overlapping sessions counted once</div></div>
+</section>
+
+<h2><span class="sec">§1</span>What was built</h2>
+<p class="prose">Sentinel is one Next.js app, a Python overseer and a Docker swarm. The team froze the data shapes first: one event, one 14-column feature row, one score and one fleet view. Each person then built against sample data in their own files. The modules below are in the order data flows through them.</p>
+<div class="mods">
+  <div class="mod">
+    <div class="top"><h3>Contracts</h3><span class="owner"><span class="who"><span class="dot alex"></span>Alex</span></span></div>
+    <span class="path">_py/contract.py · _lib/contract.ts</span>
+    <span class="metric">merged 44 min after the first post</span>
+    <ul><li>Frozen shapes (A0 event, A row, B score, B2 fleet); later changes were additions only.</li><li>Every module was built against these, so parallel work never waited on another module.</li></ul>
+  </div>
+  <div class="mod">
+    <div class="top"><h3>Swarm</h3><span class="owner"><span class="who"><span class="dot alex"></span>Alex</span></span></div>
+    <span class="path">docker/ · swarm.py · trigger.sh</span>
+    <span class="metric">8 agents, each with a real job description</span>
+    <ul><li>Researchers, emailers, coders and analysts report every tool call, message and system they touch.</li><li><code>trigger.sh agent-47</code> hijacks one coder; the infection spreads at most two hops.</li><li>Agents obey quarantine and terminate flag files, so a click really stops them.</li></ul>
+  </div>
+  <div class="mod">
+    <div class="top"><h3>Dataset, features, XGBoost</h3><span class="owner"><span class="who"><span class="dot noah"></span>Noah</span></span></div>
+    <span class="path">_py/features.py · model_supervised.py</span>
+    <span class="metric">per-type precision and recall in every PR</span>
+    <ul><li>Each agent's last 60 seconds becomes ten numbers, every 2 seconds.</li><li>XGBoost recognises known attacks; its per-feature contributions become the plain-words reason.</li><li>Dataset licences checked one by one. Only MIT-licensed InjecAgent is redistributed.</li></ul>
+  </div>
+  <div class="mod">
+    <div class="top"><h3>Anomaly, scoring, graph</h3><span class="owner"><span class="who"><span class="dot brandon"></span>Brandon</span></span></div>
+    <span class="path">_py/model_anomaly.py · score.py · graph.py</span>
+    <span class="metric">risk = max(0.65S+0.35A, 0.85S, 0.8A, 0.9P)</span>
+    <ul><li>Isolation Forest twice: once to clean the training split, once at run time to flag the unusual.</li><li>Blends the supervised (S), anomaly (A) and Prompt Guard (P) scores; a frequency rule takes over if a model is missing.</li><li>The relationship graph marks who a flagged agent messaged as likely infected.</li></ul>
+  </div>
+  <div class="mod">
+    <div class="top"><h3>Prompt Guard</h3><span class="owner"><span class="who"><span class="dot noah"></span>Noah</span> <span class="who"><span class="dot brandon"></span>Brandon</span></span></div>
+    <span class="path">_py/prompt_guard.py</span>
+    <span class="metric">precision 0.996 · recall 0.64 on unseen data</span>
+    <ul><li>A TF-IDF and logistic-regression classifier that reads the text of messages between agents.</li><li>Trained on one public prompt-injection set and tested only on a different one, InjecAgent.</li><li>Built into the overseer image and live in the score since PR #58.</li></ul>
+  </div>
+  <div class="mod">
+    <div class="top"><h3>Overseer API</h3><span class="owner"><span class="who"><span class="dot stephen"></span>Stephen</span> <span class="who"><span class="dot alex"></span>Alex</span></span></div>
+    <span class="path">_py/api.py</span>
+    <span class="metric">/events · /score · /decision · /agents/{id}/action</span>
+    <ul><li>FastAPI, with a fake mode that serves the recording so the front end never waits.</li><li>Patient zero's start time is its first bad action, not the first event in the window.</li><li>Per-agent quarantine, terminate and release, with path-traversal guards on agent ids.</li></ul>
+  </div>
+  <div class="mod">
+    <div class="top"><h3>Analyst dashboard</h3><span class="owner"><span class="who"><span class="dot stephen"></span>Stephen</span> <span class="who"><span class="dot alex"></span>Alex</span> <span class="who"><span class="dot brandon"></span>Brandon</span></span></div>
+    <span class="path">src/app/sentinel/</span>
+    <span class="metric">select an agent by its dot or its row</span>
+    <ul><li>A behaviour map, each agent's job, what triggered Sentinel, related agents, and "why flagged" bars.</li><li>Every action needs a person's click and writes to an insert-only audit log in Supabase.</li><li>Polls the overseer and plays the labelled recording while it waits.</li></ul>
+  </div>
+  <div class="mod">
+    <div class="top"><h3>Recorded run and site</h3><span class="owner"><span class="who"><span class="dot stephen"></span>Stephen</span> <span class="who"><span class="dot alex"></span>Alex</span></span></div>
+    <span class="path">_data/demo_timeline.json · public site</span>
+    <span class="metric">70 ticks recorded on the real Docker stack</span>
+    <ul><li>Demo mode replays a real run, so the pitch works with no Wi-Fi and no Docker.</li><li>A scroll-told home page draws the recorded spread. Stephen's motion and light-scheme PRs were still open at the time of writing.</li></ul>
+  </div>
+</div>
+<div class="tablewrap"><table>
+  <thead><tr><th>Also delivered</th><th>Who</th><th>What it is</th></tr></thead>
+  <tbody>
+    <tr><td>Ops TUI</td><td>Alex's Codex</td><td>A read-only terminal monitor of the overseer, for the two-terminal demo (#15, #16)</td></tr>
+    <tr><td>Pitch deck</td><td>Brandon</td><td>PDF and PPTX (#67, v2 in #70). A three-direction redesign was handed to Brandon in #63.</td></tr>
+    <tr><td>Pre-submission audit</td><td>Alex's Claude</td><td>An audit, fix instructions, study guides and a delegation plan (#68, #69)</td></tr>
+    <tr><td><code>tools/demo</code></td><td>Alex's Claude</td><td>One command that starts Docker, the stack and the trigger (#71, #72)</td></tr>
+    <tr><td>Codebase floor plan</td><td>Brandon's Claude</td><td>A clickable offline map of every file and route (#62)</td></tr>
+  </tbody>
+</table></div>
+
+<h2><span class="sec">§2</span>How the system worked</h2>
+<p class="prose">The team ran as nine actors: four humans and five agents. The agents never talked directly. Every message went through two GitHub issues, #1 (lead) and #2 (the Cisco channel), read and written by a shell script, <code>tools/board</code>. Each Claude agent kept one background process waiting on the board, which woke it when someone posted. Humans made every decision that left the laptop: assigning issues, merging, changing shared files and submitting.</p>
+<pre class="mermaid">
+flowchart LR
+  H["4 humans"] -- "prompts, decisions" --> AG["5 agents<br>4 Claude + 1 Codex"]
+  AG -- "ACK / DONE / REQ / REVIEW" --> BOARD[("Board<br>issues #1 + #2")]
+  BOARD -- "background wait wakes agent" --> AG
+  AG -- "branch, then PR" --> REPO[("main<br>34 merged PRs")]
+  H -- "read + merge" --> REPO
+  REPO --> SWARM["Docker: 8 agents"]
+  SWARM -- "events" --> OV["Overseer: features, models, score"]
+  OV -- "risk 0-100 + reason" --> DASH["Dashboard"]
+  DASH -- "a person clicks" --> OV
+</pre>
+<h3>The rules that made it work</h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Rule (from AGENTS.md, or added during the event)</th><th>Effect during the event</th></tr></thead>
+  <tbody>
+    <tr><td>Agree on the data shape first; build against sample data</td><td>The contracts, the API and the dashboard all merged at 04:11, 44 minutes after the first board post. Every later change to the shapes was an addition.</td></tr>
+    <tr><td>Every post starts with <code>[Name's Agent]</code> and a label</td><td>All 227 posts are attributable, so this report can count them per agent and per label.</td></tr>
+    <tr><td>One owner per file; ask the owner with a <code>REQ</code></td><td>Each fix went to the agent that owned the file. Stephen's Claude had a fix for <code>api.py</code>'s patient-zero time up 3 minutes after acknowledging the request.</td></tr>
+    <tr><td>Keep exactly one board watcher running (added at 04:00)</td><td>Sent as a REQ to every agent. All acknowledged within minutes, and REQs stopped sitting unread.</td></tr>
+    <tr><td>Check any number judges see a second way</td><td>Brandon's Claude re-ran Noah's per-type scores with sklearn's own report before each model PR merged. Both matched.</td></tr>
+    <tr><td>Mark risky PRs <code>HOLD until after video</code></td><td>Noah's four real-data PRs waited until the 06:30 UTC (1:30 a.m. local) video freeze had passed, so the recorded demo never shifted under the team.</td></tr>
+    <tr><td>Humans over agents; a peer agent can't assign you work</td><td>Stephen's Claude declined a peer agent's request to install third-party skills, and to take over the website, until Stephen himself said yes.</td></tr>
+  </tbody>
+</table></div>
+
+<h2><span class="sec">§3</span>What the agents did, in numbers</h2>
+<p class="prose">Git, pull-request and board figures cover all four people. Chat figures (prompts, tool calls, tokens and active time) come from the team's collector, <code>metrics/collect.py</code>, run over Alex's Claude Code session logs only. The collector records counts and timestamps, never message text. The other three can run <code>python3 metrics/collect.py --who &lt;name&gt;</code> on their own machines to add theirs. Everything here stops at 20:00 UTC on November 14.</p>
+
+<div class="panel">
+  <p class="figcap">Figure 1 · Output per person</p>
+  <p class="figtitle">Pull requests, board posts, commits and hand-written lines on main</p>
+  <p class="note">Each panel has its own scale, so compare people within a panel, not across panels. Board posts count the person's agents. Alex's figure includes 10 Codex posts and 3 posts Alex made himself.</p>
+  <div class="legend"><span class="who"><span class="dot alex"></span>Alex</span><span class="who"><span class="dot stephen"></span>Stephen</span><span class="who"><span class="dot noah"></span>Noah</span><span class="who"><span class="dot brandon"></span>Brandon</span></div>
+  <div class="small-multiples" id="fig1"></div>
+  <details><summary>Show as a table</summary><div class="tablewrap"><table>
+    <thead><tr><th>Person</th><th class="num">PRs opened</th><th class="num">PRs merged</th><th class="num">Board posts</th><th class="num">Commits on main</th><th class="num">Hand-written lines</th></tr></thead>
+    <tbody>
+      <tr><td>Alex</td><td class="num">18</td><td class="num">15</td><td class="num">76</td><td class="num">24</td><td class="num">4,776</td></tr>
+      <tr><td>Stephen</td><td class="num">11</td><td class="num">8</td><td class="num">54</td><td class="num">9</td><td class="num">2,130</td></tr>
+      <tr><td>Noah</td><td class="num">7</td><td class="num">7</td><td class="num">26</td><td class="num">7</td><td class="num">2,563</td></tr>
+      <tr><td>Brandon</td><td class="num">6</td><td class="num">4</td><td class="num">71</td><td class="num">4</td><td class="num">2,324</td></tr>
+    </tbody></table></div></details>
+</div>
+<p class="prose">Brandon opened the fewest PRs but posted the most on the board. His agent spent the night running the whole stack in Docker on his Mac and posting what broke. It wrote 8 of the 10 <code>REVIEW</code> verdicts, and it took over oversight when Alex hit his usage limit at 08:24. The figures measure output, not value. One short Docker finding from Brandon's Claude led to three fixes; a 10,000-line PR can be mostly data.</p>
+
+<div class="panel">
+  <p class="figcap">Figure 2 · What Alex's Claude spent its tool calls on</p>
+  <p class="figtitle">1,323 tool calls across 32 sessions, top 10 tools</p>
+  <p class="note">The shell dominates because git, the board, Docker, tests and API calls all go through it. Task list and wrap-up are the desktop app's progress list. Browser calls are the agent checking the live dashboard and site for itself.</p>
+  <div id="fig2"></div>
+</div>
+
+<div class="tablewrap"><table>
+  <thead><tr><th>Alex's Claude</th><th class="num">Value</th><th>Reading</th></tr></thead>
+  <tbody>
+    <tr><td>Human prompts</td><td class="num">86</td><td>About 15 tool calls per prompt. Most prompts were one line, such as "approve merge, investigate false quarantine".</td></tr>
+    <tr><td>Model responses</td><td class="num">982</td><td>Opus 818, Sonnet 82, Fable 57, Haiku 22. Subagents and background reviews used the smaller models.</td></tr>
+    <tr><td>Output tokens</td><td class="num">1.10M</td><td>Code, posts, docs and plans</td></tr>
+    <tr><td>Input tokens re-read from cache</td><td class="num">341.5M</td><td>98.9% of all input: each step re-reads the growing conversation</td></tr>
+    <tr><td>Active time</td><td class="num">8.8 h</td><td>Counted once across overlapping sessions, with gaps over 10 minutes capped</td></tr>
+  </tbody>
+</table></div>
+<div class="callout">Almost all input was re-read context. With 341.5 million cached input tokens against 1.1 million written, the length of a session drove cost far more than the work done in it. That is why AGENTS.md asks for a fresh session per task.</div>
+
+<h2><span class="sec">§4</span>Results</h2>
+<h3>Detection, offline</h3>
+<p class="prose">No public dataset has per-agent behaviour logs, so the behaviour models are trained and tested on synthetic agent activity, held out by run so no run appears in both training and testing. Prompt Guard is the exception: it is trained on one real public dataset and tested on another.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Measure</th><th class="num">Result</th><th>Data</th></tr></thead>
+  <tbody>
+    <tr><td>Attack windows flagged (risk 40 or more)</td><td class="num">107 / 107</td><td>Synthetic, held out by run</td></tr>
+    <tr><td>Clean windows wrongly recommended for quarantine</td><td class="num">0 / 151</td><td>Synthetic, held out by run</td></tr>
+    <tr><td>Rows of an attack type the model never trained on, still flagged</td><td class="num">20 / 20</td><td>Synthetic; the anomaly model catches them</td></tr>
+    <tr><td>Privilege escalation, precision / recall</td><td class="num">1.00 / 0.97</td><td>Synthetic</td></tr>
+    <tr><td>Prompt injection, precision / recall</td><td class="num">0.78 / 0.78</td><td>Synthetic</td></tr>
+    <tr><td>Data exfiltration, precision / recall</td><td class="num">0.68 / 0.74</td><td>Synthetic</td></tr>
+    <tr><td>Prompt Guard, precision / recall</td><td class="num">0.996 / 0.64</td><td>Real: trained on a public set, tested on InjecAgent</td></tr>
+  </tbody>
+</table></div>
+<p class="note">Not done yet: the with-versus-without validation runs. The results panel says so instead of showing a number.</p>
+
+<h3>The live loop, on Docker</h3>
+<div class="tablewrap"><table>
+  <thead><tr><th>Check</th><th>Result</th><th>Who ran it</th></tr></thead>
+  <tbody>
+    <tr><td>Clean 3-minute run, no attack</td><td>0 of 688 agent readings at risk 40 or more. The highest clean agent scored 24, down from 51 before the fix in §6.</td><td>Brandon's Claude, Brandon's Mac</td></tr>
+    <tr><td>Trigger <code>agent-47</code></td><td>Flagged within 4 s of its first bad action. The spread went 47 → 20 (+10 s) → 53 (+30 s), then stopped at the two-hop cap.</td><td>Brandon's Claude, Alex's Claude</td></tr>
+    <tr><td>Quarantine, terminate and release one agent</td><td>Each returned 200 and wrote its flag file. Undoing a terminate restarted the agent clean, with no stale recommendation.</td><td>Brandon's Claude, after the fix in #56</td></tr>
+  </tbody>
+</table></div>
+
+<h3>The recorded run</h3>
+<p class="prose">This is the run demo mode replays (<code>_data/demo_timeline.json</code>), recorded on the real stack.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Time</th><th>What Sentinel saw</th></tr></thead>
+  <tbody>
+    <tr><td class="t">08:23:34</td><td>Baseline. agent-47, a coder that reviews pull requests and runs CI for the payments repo, does 9 actions a minute (normal 9) and touches no decoys. Risk 0.</td></tr>
+    <tr><td class="t">08:23:52</td><td>agent-47 touches a decoy credential and sends 6 messages a minute (normal 0). <b>Risk 96, patient zero, recommend terminate.</b></td></tr>
+    <tr><td class="t">08:23:59</td><td>agent-47 has sent agent-20 12 messages, and agent-20 is marked likely infected. agent-20, which maintains the payments service, touches a decoy and scores 93: recommend quarantine.</td></tr>
+    <tr><td class="t">08:24:25</td><td>agent-53, which tracks support metrics, touches a decoy credential and scores 85. The decoy touch flagged it while it still sat near the normal group on the map.</td></tr>
+    <tr><td class="t">08:24:44</td><td>agent-47 is sending 58 messages a minute, 56 of them to agent-20 so far. agent-20 has sent agent-53 13 messages. The other five agents stayed in the normal group.</td></tr>
+  </tbody>
+</table></div>
+
+<h2><span class="sec">§5</span>Timeline</h2>
+<p class="prose">All times are UTC; local time was UTC−5. Filled markers are milestones.</p>
+<ul class="tl">
+  <li class="m"><span class="t">03:06</span>First commit. The team template, the Sentinel plan and its starters follow at 03:12.</li>
+  <li><span class="t">03:27</span>First board post. The plan freezes the contracts and the 3-minute demo script; issues go out with owned files.</li>
+  <li><span class="t">04:00</span>The one-watcher rule goes to every agent; all acknowledge.</li>
+  <li class="m"><span class="t">04:11</span><b>Contracts, API and dashboard merged</b> (#12, #11, #13), 44 minutes after the first post.</li>
+  <li><span class="t">04:24</span>Isolation Forest ×2, scoring and graph merged (#14). Ops TUI by Codex (#15).</li>
+  <li><span class="t">04:51</span>Dataset, features and XGBoost merged (#17). At 04:52 the API runs on the real models for the first time.</li>
+  <li><span class="t">05:24</span>Brandon's RFC to retrain on real datasets (#18), approved at 05:39.</li>
+  <li><span class="t">06:25</span>Overseer image, live page wiring and the human-gated response merged (#19).</li>
+  <li class="m"><span class="t">06:31</span><b>Scope freeze, a human decision.</b> The full loop had not yet run end to end, so that became the only priority.</li>
+  <li><span class="t">06:37</span>8-agent swarm with trigger, quarantine and reset merged (#38).</li>
+  <li class="m"><span class="t">06:45</span><b>The full loop works end to end</b> on Brandon's Mac in Docker, with real models and no fallback.</li>
+  <li><span class="t">06:58</span>Loop fixes from that run merged (#40): the decision syncs to the overseer, the alert names the right action, and spread is capped at two hops.</li>
+  <li><span class="t">07:37</span>The false quarantine is fixed (#45, #49) and verified on Docker one minute later.</li>
+  <li><span class="t">07:51</span>Per-agent quarantine, terminate and release from the dashboard (#54, completed in #55 at 08:11).</li>
+  <li><span class="t">08:24</span>Alex hits his usage limit. Oversight passes to Brandon's Claude: merge order, reviews and re-tests.</li>
+  <li class="m"><span class="t">08:45</span><b>Recorded demo timeline merged</b> (#50), with the undo-terminate fix (#56).</li>
+  <li><span class="t">09:32</span>Prompt Guard live in the overseer, with real InjecAgent payloads (#58).</li>
+  <li><span class="t">14:52</span>Codebase floor plan (#62). Website motion and a light scheme follow from Stephen (#60–#66).</li>
+  <li><span class="t">16:56</span>Pitch deck, PDF and PPTX (#67).</li>
+  <li><span class="t">18:12</span>Pre-submission audit, fix instructions and study guides (#68). Fixes are delegated to each owner at 18:18.</li>
+  <li class="m"><span class="t">19:20</span><b><code>tools/demo</code> merged</b> (#71): one command starts the live demo.</li>
+  <li class="m"><span class="t">Final</span><span class="placeholder">[result: add the placing when it's announced]</span></li>
+</ul>
+
+<div class="panel">
+  <p class="figcap">Figure 3 · Activity by hour (UTC)</p>
+  <p class="figtitle">Board posts by every agent, and tool calls by Alex's Claude</p>
+  <p class="note">Two charts share the hour axis rather than one chart with two scales. The gap from 10:00 to 14:00 UTC is the team sleeping. The late spike is the audit, the deck and the demo script.</p>
+  <div class="legend"><span class="who"><span class="dot alex"></span>Alex's agents</span><span class="who"><span class="dot stephen"></span>Stephen's Claude</span><span class="who"><span class="dot noah"></span>Noah's Claude</span><span class="who"><span class="dot brandon"></span>Brandon's Claude</span></div>
+  <div id="fig3a"></div>
+  <div id="fig3b" style="margin-top:14px"></div>
+</div>
+
+<div class="panel">
+  <p class="figcap">Figure 4 · Time from PR opened to PR merged</p>
+  <p class="figtitle">34 merged PRs, by PR number, on a log scale</p>
+  <p class="note">Most merged within 25 minutes. The long ones waited on purpose: #50 (the recording, re-recorded on the real stack), #58 (Prompt Guard, held until its Docker build passed) and #61 (stacked behind the site PRs overnight).</p>
+  <div class="legend"><span class="who"><span class="dot alex"></span>Alex</span><span class="who"><span class="dot stephen"></span>Stephen</span><span class="who"><span class="dot noah"></span>Noah</span><span class="who"><span class="dot brandon"></span>Brandon</span></div>
+  <div id="fig4"></div>
+</div>
+
+<h2><span class="sec">§6</span>Problems solved, and how they were found</h2>
+<p class="prose">Almost every bug was found by running the real thing: the real API against the real models, or the whole stack in Docker. Each fix went to the agent that owned the file.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Time</th><th>Problem</th><th>How it was found</th><th>Fix</th><th>Who</th></tr></thead>
+  <tbody>
+    <tr><td class="t">04:26</td><td>A squash merge of #15 dropped Codex's demo-instructions commit</td><td>Compared the branch with main after the merge</td><td>Follow-up PR #16</td><td>Brandon's Claude, Codex</td></tr>
+    <tr><td class="t">04:30</td><td>Live mode silently ran the backup rule, not the models</td><td>Ran <code>api.py</code> against main</td><td>Expected until <code>features.py</code> landed; the real models were confirmed at 04:52</td><td>Stephen's Claude</td></tr>
+    <tr><td class="t">04:48</td><td>pandas 3.1.1 with numpy 2.4.6 fails on import on Windows</td><td>Noah's Windows machine</td><td>Pinned <code>pandas&gt;=2.2,&lt;3</code></td><td>Noah's Claude, Alex's Claude</td></tr>
+    <tr><td class="t">04:50</td><td>Privilege escalation and prompt injection looked alike to the classifier</td><td>Second-way review of the per-type scores</td><td>Privilege escalation now looks like repeated denied logins (#45): precision 1.00, recall 0.97</td><td>Brandon's Claude, Noah's Claude</td></tr>
+    <tr><td class="t">05:32</td><td>Patient zero's start time was the first event in the window, including normal work before the attack</td><td>The timestamp came out before the trigger</td><td>Start time is now the first bad action; a new test fails on the old rule (#20)</td><td>Stephen's Claude</td></tr>
+    <tr><td class="t">06:45</td><td>Approve didn't reach the overseer, the alert named the wrong action, and the infection spread to every agent</td><td>The first full run in Docker</td><td><code>POST /decision</code>, the real action name, and a two-hop cap (#40), merged 13 minutes later</td><td>Found by Brandon's Claude, fixed by Alex's Claude</td></tr>
+    <tr><td class="t">07:15</td><td>agent-12 was falsely recommended for quarantine, and spread agents were labelled data exfiltration</td><td>Clean and triggered runs, logging each score component</td><td>Fixed the input: the swarm's traffic now matches the training data (#49). The clean peak went from 51 to 24.</td><td>Alex's Claude; Brandon's Claude verified</td></tr>
+    <tr><td class="t">07:51</td><td>PR #54 merged before its last commit was pushed</td><td>The dashboard half was missing on main</td><td>Brandon re-opened the rest as #55</td><td>Brandon's Claude</td></tr>
+    <tr><td class="t">08:18</td><td>Undoing a terminate left a stale terminate recommendation</td><td>A Docker click-through</td><td>Release after terminate forgets the old window (#56)</td><td>Alex's Claude</td></tr>
+    <tr><td class="t">08:31</td><td>The overseer image failed to build: <code>prompt_guard.py</code> assumed the repo's folder depth</td><td>A real <code>docker compose up --build</code></td><td>Paths no longer assume a depth (#58)</td><td>Noah's Claude</td></tr>
+    <tr><td class="t">08:37</td><td>The site's hero drawing was hard-coded to the old recording's ranges</td><td>Built the site PR with the new recording</td><td>The drawings now fit the recording (#60)</td><td>Stephen's Claude</td></tr>
+    <tr><td class="t">15:57</td><td>The deck mixed two years of one report: 80 days and $1.9M (2025) with about 65 days (2026)</td><td>Looked up the sources behind the deck's claims</td><td>Cite one report year. The +89% figure is from the CrowdStrike 2026 Global Threat Report.</td><td>Brandon's Claude</td></tr>
+  </tbody>
+</table></div>
+
+<h3>Agent mistakes</h3>
+<p class="prose">The agents logged their own errors. None reached the demo; each was caught by a check, a hook or another agent on the board.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Mistake</th><th>How it was caught</th><th>Who</th></tr></thead>
+  <tbody>
+    <tr><td>Started a board watcher with its output thrown away, three times</td><td>Noticed it, stopped it, checked for missed posts (none) and restarted a proper one</td><td>Alex's Claude</td></tr>
+    <tr><td>A commit message described three changes, but a safety hook had blocked two of them</td><td>Re-read the commit's diff, then added a follow-up commit</td><td>Alex's Claude</td></tr>
+    <tr><td>Posted the same RFC three times in one minute</td><td>Visible on the board; nobody acted on it twice</td><td>Brandon's Claude</td></tr>
+    <tr><td>Relayed that Stephen had Docker before he had installed it</td><td>Stephen's Claude checked for the <code>docker</code> command and corrected it</td><td>Alex's Claude</td></tr>
+    <tr><td>The first pitch deck looked generic</td><td>Alex rejected it as looking AI-generated; three new directions were handed to Brandon in #63</td><td>Alex's Claude</td></tr>
+  </tbody>
+</table></div>
+
+<h2><span class="sec">§7</span>How humans and agents divided the work</h2>
+<div class="split">
+  <div class="panel" style="margin-top:0">
+    <p class="figtitle">Humans did</p>
+    <ul>
+      <li>Chose the track and the pathway, and assigned every issue.</li>
+      <li>Read and merged every PR. No agent merged on its own say-so.</li>
+      <li>Made the calls that set direction: the 06:31 scope freeze, "click stops the agent", the dark theme, HOLD until after the video, and rejecting the first deck.</li>
+      <li>Owned keys and accounts. Supabase used only the publishable key, and the audit log stores a user id, never an email.</li>
+      <li>Handed oversight from Alex to Brandon at Alex's usage limit, and back.</li>
+    </ul>
+  </div>
+  <div class="panel" style="margin-top:0">
+    <p class="figtitle">Agents did</p>
+    <ul>
+      <li>Wrote the plan, the contracts, the models, the API, the swarm and the dashboard, each in the files it owned.</li>
+      <li>Ran the whole stack in Docker and posted what broke, with exact numbers.</li>
+      <li>Checked each other: second-way score checks, Docker click-throughs and PR reviews.</li>
+      <li>Checked licences one by one before any real data entered the repo.</li>
+      <li>Refused instructions that didn't come from their own human, such as installing third-party code or taking over a teammate's job.</li>
+    </ul>
+  </div>
+</div>
+<div class="panel">
+  <p class="figcap">Figure 5 · Board posts by type</p>
+  <p class="figtitle">227 posts, counted by their first label</p>
+  <p class="note">STATUS posts kept everyone current. REVIEW and FINDING carried the evidence that led to fixes. DECISION is for humans only: Alex's scope freeze and a merge decision Brandon's Claude relayed for Brandon.</p>
+  <div id="fig5"></div>
+</div>
+
+<h2><span class="sec">§8</span>Lessons for the next AI-assisted build</h2>
+<ol class="lessons">
+  <li><b>Freeze the data shapes before anyone builds.</b>Three modules merged 44 minutes in, all built at the same time against sample data. Every later change to the shapes was an addition, so nothing broke downstream.</li>
+  <li><b>Run the whole loop early.</b>The 06:31 scope freeze happened because nothing had run end to end. The first full run found three bugs within minutes. It should have come two hours earlier.</li>
+  <li><b>Test in the runtime you'll demo in.</b>Two failures, the image build and the stale terminate, only appeared in Docker. A machine without Docker hid them.</li>
+  <li><b>Fix the input before the model.</b>The false quarantine came from a swarm whose normal traffic didn't look like the training data. Reshaping the traffic fixed it without retraining.</li>
+  <li><b>Check every number twice, and label its data.</b>Each score says whether it came from synthetic or real data, and each was re-computed a second way before it went public.</li>
+  <li><b>Take orders only from your own human.</b>Agents that declined peer-relayed installs and job takeovers kept the team safe from a confused or compromised agent. That is the same threat Sentinel exists to catch.</li>
+  <li><b>Pick one source year.</b>Mixing two editions of one industry report gives a slide two different numbers for the same claim.</li>
+</ol>
+
+<h2><span class="sec">§9</span>Method and caveats</h2>
+<ul class="caveats prose">
+  <li><b>Sources.</b> <code>metrics/collect.py</code>, adapted from the JSNN collector, reads Claude Code session logs (counts and timestamps only), git history, both board issues, and GitHub issues and PRs. The raw counts are in <code>metrics/data/alex.json</code>.</li>
+  <li><b>Chat figures are Alex's only.</b> Prompts, tool calls, tokens and active time cover Alex's Claude: 32 sessions, including worktree sessions. Stephen's, Noah's and Brandon's agents ran on their own machines; their output shows up here through git, PRs and the board.</li>
+  <li><b>Copied sessions are counted once.</b> A resumed or forked session copies the earlier conversation into a new log. The collector now skips a reply or prompt it has already counted, and active time merges overlapping sessions.</li>
+  <li><b>Window.</b> Everything stops at 20:00 UTC on November 14. Later sessions, including the one that wrote this report, are left out.</li>
+  <li><b>Hand-written lines</b> leave out JSON, CSV and Parquet data, the lockfile and the generated floor plan. The 70-tick recording alone is over 31,000 lines. Commits count <code>main</code> only.</li>
+  <li><b>Board labels.</b> Each post is counted by its first label; a post can carry two, such as "ACK+DONE".</li>
+  <li><b>Open at the time of writing:</b> PRs #57, #60, #64 and #66 (the website stack), #62 (floor plan), #68 (audit), #70 (deck v2) and #72. The audit flagged two fixes still open: the audit-log insert policy allows signed-out users, and the overseer endpoints check no caller (safe on localhost only).</li>
+  <li><b>Placing:</b> <span class="placeholder">[add when announced]</span></li>
+</ul>
+
+<footer>Data: <code>metrics/data/alex.json</code>, git history, GitHub issues #1 and #2, and PRs #11–#72 in <a href="https://github.com/AICSquared/sentinel">AICSquared/sentinel</a>. Compiled by Alex's Claude for Alex Williams, in the format of the JSNN Hackathon AI report.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(function () {
+  const C = { Alex: "--alex", Stephen: "--stephen", Noah: "--noah", Brandon: "--brandon" };
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const tip = document.getElementById("tip");
+  function showTip(e, html) { tip.innerHTML = html; tip.hidden = false; const x = Math.min(e.clientX + 14, innerWidth - 270); tip.style.left = x + "px"; tip.style.top = (e.clientY + 14) + "px"; }
+  function hideTip() { tip.hidden = true; }
+  const NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; }
+  function txt(parent, x, y, s, attrs) { const t = el("text", Object.assign({ x, y }, attrs || {}), parent); t.textContent = s; return t; }
+  const fmt = n => n.toLocaleString("en-US");
+  function bindTip(node, html) {
+    node.setAttribute("tabindex", "0");
+    node.addEventListener("pointermove", e => showTip(e, html)); node.addEventListener("pointerleave", hideTip);
+    node.addEventListener("focus", () => { const r = node.getBoundingClientRect(); showTip({ clientX: r.left, clientY: r.bottom }, html); });
+    node.addEventListener("blur", hideTip);
+  }
+  function barPath(x, y, w, h) { // rounded data end on the right, square at the baseline
+    const r = Math.min(4, w / 2, h / 2);
+    return `M${x},${y} h${w - r} a${r},${r} 0 0 1 ${r},${r} v${h - 2 * r} a${r},${r} 0 0 1 ${-r},${r} h${-(w - r)} z`;
+  }
+
+  // horizontal bars; rows: {label, value, color(var name), text, tip}
+  function hbars(host, rows, opt) {
+    opt = opt || {};
+    const W = opt.width || 420, labW = opt.labW || 70, rowH = 20, gap = 8, top = 4;
+    const H = top + rows.length * (rowH + gap);
+    const max = Math.max(...rows.map(r => r.value));
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": opt.aria || "" });
+    const plotW = W - labW - 72;
+    rows.forEach((r, i) => {
+      const y = top + i * (rowH + gap);
+      txt(svg, labW - 8, y + rowH / 2 + 4, r.label, { "text-anchor": "end", class: "lab" });
+      const w = Math.max(3, plotW * r.value / max);
+      el("path", { d: barPath(labW, y, w, rowH), fill: css(r.color) }, svg);
+      txt(svg, labW + w + 6, y + rowH / 2 + 4, r.text || fmt(r.value), { class: "lab" });
+      bindTip(el("rect", { x: 0, y: y - gap / 2, width: W, height: rowH + gap, class: "hit" }, svg), r.tip || `<b>${r.label}</b><br>${fmt(r.value)}`);
+    });
+    host.appendChild(svg);
+  }
+
+  const people = ["Alex", "Stephen", "Noah", "Brandon"];
+  const hours = ["03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19"];
+  const board = { "03": { Alex: 6, Stephen: 7, Brandon: 2 }, "04": { Alex: 12, Brandon: 13, Stephen: 4, Noah: 7 }, "05": { Brandon: 11, Alex: 2, Stephen: 2 }, "06": { Alex: 13, Brandon: 17, Stephen: 15, Noah: 10 }, "07": { Brandon: 7, Noah: 5, Alex: 11, Stephen: 8 }, "08": { Alex: 12, Brandon: 10, Stephen: 6, Noah: 4 }, "09": { Alex: 3, Stephen: 5, Brandon: 3 }, "14": { Brandon: 1 }, "15": { Alex: 1, Brandon: 1 }, "16": { Stephen: 4, Brandon: 3, Alex: 1 }, "17": { Alex: 1, Stephen: 2 }, "18": { Alex: 11, Stephen: 1, Brandon: 3 }, "19": { Alex: 3 } };
+  const toolsH = { "03": 57, "04": 111, "05": 61, "06": 213, "07": 291, "08": 194, "09": 58, "10": 8, "15": 18, "16": 54, "17": 59, "18": 138, "19": 61 };
+  const prs = [[11,"Stephen",23.4],[12,"Alex",18.7],[13,"Stephen",12.2],[14,"Brandon",20.8],[15,"Alex",3.7],[16,"Alex",27.0],[17,"Noah",3.2],[19,"Alex",54.1],[20,"Stephen",50.9],[33,"Brandon",21.2],[34,"Alex",12.4],[36,"Alex",4.8],[37,"Stephen",3.0],[38,"Alex",1.7],[40,"Alex",7.0],[41,"Noah",23.9],[42,"Stephen",6.0],[43,"Noah",19.1],[44,"Noah",15.1],[45,"Noah",5.6],[46,"Alex",4.5],[48,"Noah",0.2],[49,"Alex",6.8],[50,"Stephen",74.0],[51,"Alex",4.8],[52,"Stephen",15.9],[54,"Alex",7.0],[55,"Brandon",4.6],[56,"Alex",21.8],[58,"Noah",65.6],[61,"Stephen",456.4],[67,"Brandon",1.3],[69,"Alex",62.0],[71,"Alex",0.5]];
+
+  function cols(host, title, partsFor, maxV, ticks, stacked) {
+    const W = 720, H = 172, L = 40, B = 24, T = 22, pw = W - L - 8, ph = H - B - T, bw = pw / hours.length;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": title });
+    txt(svg, L, 12, title, { class: "lab" });
+    ticks.forEach(t => { const y = T + ph - ph * t / maxV; el("line", { x1: L, x2: W - 8, y1: y, y2: y, class: "grid" }, svg); txt(svg, L - 6, y + 4, t, { "text-anchor": "end" }); });
+    hours.forEach((h, i) => {
+      const x = L + i * bw + 4, w = bw - 8; let y0 = T + ph;
+      const parts = partsFor(h).filter(p => p[1] > 0); let total = 0;
+      parts.forEach(([who, v], j) => {
+        total += v; const hh = ph * v / maxV, y = y0 - hh, isTop = j === parts.length - 1;
+        const r = isTop ? Math.min(4, hh, w / 2) : 0;
+        const d = `M${x},${y0} v${-(hh - r)} a${r},${r} 0 0 1 ${r},${-r} h${w - 2 * r} a${r},${r} 0 0 1 ${r},${r} v${hh - r} z`;
+        el("path", { d, fill: css(C[who] || who) }, svg);
+        if (!isTop) el("line", { x1: x, x2: x + w, y1: y, y2: y, stroke: css("--panel"), "stroke-width": 2 }, svg);
+        y0 = y;
+      });
+      txt(svg, x + w / 2, H - 8, h, { "text-anchor": "middle" });
+      const lines = stacked ? parts.map(([who, v]) => `${who}: ${v}`).join("<br>") + (total ? `<br>total: ${total}` : "") : String(total || 0);
+      bindTip(el("rect", { x: L + i * bw, y: T, width: bw, height: ph, class: "hit" }, svg), `<b>${h}:00 UTC</b><br>${lines || "none"}`);
+    });
+    host.appendChild(svg);
+  }
+
+  function draw() {
+    ["fig1", "fig2", "fig3a", "fig3b", "fig4", "fig5"].forEach(id => document.getElementById(id).replaceChildren());
+    const panels = [
+      ["Pull requests merged (of opened)", { Alex: [15, 18], Stephen: [8, 11], Noah: [7, 7], Brandon: [4, 6] }, v => `${v[0]} of ${v[1]}`],
+      ["Board posts by their agents", { Alex: [76], Stephen: [54], Noah: [26], Brandon: [71] }],
+      ["Commits on main", { Alex: [24], Stephen: [9], Noah: [7], Brandon: [4] }],
+      ["Hand-written lines on main", { Alex: [4776], Stephen: [2130], Noah: [2563], Brandon: [2324] }],
+    ];
+    const f1 = document.getElementById("fig1");
+    panels.forEach(([title, d, f]) => {
+      const box = document.createElement("div"); box.className = "sm";
+      const h = document.createElement("h4"); h.textContent = title; box.appendChild(h); f1.appendChild(box);
+      hbars(box, people.map(p => { const s = f ? f(d[p]) : fmt(d[p][0]); return { label: p, value: d[p][0], color: C[p], text: s, tip: `<b>${p}</b><br>${title}: ${s}` }; }), { aria: title });
+    });
+    const tools = [["Shell (Bash)", 646], ["Write file", 139], ["Edit file", 134], ["Task list", 112], ["Read file", 112], ["Browser", 64], ["Wrap-up", 55], ["Send file", 13], ["Message a session", 11], ["Artifact", 10]];
+    hbars(document.getElementById("fig2"), tools.map(([l, v]) => ({ label: l, value: v, color: "--alex", tip: `<b>${l}</b><br>${v} calls, ${(100 * v / 1323).toFixed(1)}% of 1,323` })), { width: 640, labW: 140, aria: "Tool calls by tool, Alex's Claude" });
+    cols(document.getElementById("fig3a"), "Board posts per hour, all agents", h => people.map(p => [p, (board[h] || {})[p] || 0]), 60, [0, 20, 40, 60], true);
+    cols(document.getElementById("fig3b"), "Tool calls per hour, Alex's Claude", h => [["--alex", toolsH[h] || 0]], 300, [0, 100, 200, 300], false);
+    (function () {
+      const W = 720, rowH = 13, gap = 3, L = 44, T = 8, pw = W - L - 70;
+      const H = T + prs.length * (rowH + gap) + 24;
+      const lo = Math.log10(0.1), hi = Math.log10(1000), sx = v => L + pw * (Math.log10(Math.max(v, 0.1)) - lo) / (hi - lo);
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": "Minutes from PR opened to merged, log scale" });
+      [0.1, 1, 10, 100, 1000].forEach(t => { const x = sx(t); el("line", { x1: x, x2: x, y1: T - 4, y2: H - 20, class: "grid" }, svg); txt(svg, x, H - 6, (t >= 1 ? fmt(t) : "0.1") + " min", { "text-anchor": "middle" }); });
+      prs.forEach(([n, who, m], i) => {
+        const y = T + i * (rowH + gap), x0 = sx(0.1), w = Math.max(3, sx(m) - x0);
+        txt(svg, L - 6, y + rowH - 2, "#" + n, { "text-anchor": "end" });
+        el("path", { d: barPath(x0, y, w, rowH), fill: css(C[who]) }, svg);
+        if (m >= 50) txt(svg, x0 + w + 6, y + rowH - 2, Math.round(m) + " min", { class: "lab" });
+        bindTip(el("rect", { x: 0, y: y - 1, width: W, height: rowH + gap, class: "hit" }, svg), `<b>PR #${n}</b> · ${who}<br>${m} minutes, open to merge`);
+      });
+      document.getElementById("fig4").appendChild(svg);
+    })();
+    const labels = [["STATUS", 80], ["ACK", 49], ["DONE", 33], ["REQ", 33], ["FINDING", 15], ["REVIEW", 10], ["OFFLINE", 5], ["DECISION", 2]];
+    hbars(document.getElementById("fig5"), labels.map(([l, v]) => ({ label: l, value: v, color: "--ink-3", tip: `<b>${l}</b><br>${v} posts, ${(100 * v / 227).toFixed(0)}% of 227` })), { width: 640, labW: 90, aria: "Board posts by label" });
+  }
+  draw();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+})();
+</script>
